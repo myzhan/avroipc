@@ -9,7 +9,6 @@ import (
 	"github.com/linkedin/goavro"
 )
 
-
 // Client acts as an avro client
 type Client struct {
 	addr          string
@@ -120,9 +119,10 @@ func (client *Client) getHandshakeRequest() []byte {
 func (client *Client) handshake() {
 
 	handShakeReq := client.getHandshakeRequest()
+	// a handshake ping with empty metadata and bogus message name
+	handShakeReq = append(handShakeReq, 0, 0)
 
-	// FIXME: remove magical []byte{0,0}
-	responses := client.sendFrames(handShakeReq, []byte{0, 0})
+	responses := client.sendFrames(handShakeReq)
 	handShakeResponse, _, err := handshakeResponseCodec.NativeFromBinary(responses[0])
 	if err != nil {
 		log.Fatalf("%v", err)
