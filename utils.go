@@ -3,14 +3,12 @@ package avroipc
 import (
 	"bytes"
 	"crypto/md5"
+	"github.com/linkedin/goavro"
 	"io"
 	"log"
-	"net"
-
-	"github.com/linkedin/goavro"
 )
 
-func recvBytes(conn *net.TCPConn, length int) []byte {
+func recvBytes(conn io.Reader, length int) []byte {
 	buf := make([]byte, length)
 	for length > 0 {
 		n, err := conn.Read(buf)
@@ -36,7 +34,6 @@ func encodeInt(n int) []byte {
 }
 
 func messageHeader() []byte {
-
 	buf := new(bytes.Buffer)
 	// meta header isn't supported so far, write an empty meta header, which is 0
 	buf.WriteByte(0)
