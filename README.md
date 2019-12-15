@@ -21,6 +21,20 @@ event := NewEvent(headersMap, body)
 client.Append(event)
 ```
 
+## Development
+
+Clone the repository and do the following sequence of command:
+```bash
+go get
+go test ./...
+```
+
+To run test with a real client run the following command:
+```bash
+FLUME_SERVER_ADDRESS=127.0.0.1:20201 go test -count=1 -run TestSend
+```
+where `127.0.0.1:20201` is a real Apache Flume server, `-count=1` is a way to disable Go build cache.
+
 ## License
 
 Open source licensed under the MIT license (see _LICENSE_ file for details).
