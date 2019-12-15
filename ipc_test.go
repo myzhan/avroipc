@@ -2,15 +2,20 @@ package avroipc
 
 import (
 	"log"
+	"os"
 	"testing"
 )
 
 func TestSend(t *testing.T) {
-	t.Skip("Skip the real test")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	addr := os.Getenv("FLUME_SERVER_ADDRESS")
+	if addr == "" {
+		t.Skip("The FLUME_SERVER_ADDRESS environment variable is not set")
+	}
+
 	// flume avro instance address
-	client := NewClient("localhost:20200")
+	client := NewClient(addr)
 
 	headersMap := make(map[string]string)
 	headersMap["topic"] = "myzhan"
