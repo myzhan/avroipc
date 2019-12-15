@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/myzhan/avroipc/workflows/go/badge.svg)](https://github.com/myzhan/avroipc/actions?workflow=go)
+[![Build Status](https://github.com/myzhan/avroipc/workflows/Go/badge.svg)](https://github.com/myzhan/avroipc/actions?workflow=Go)
 [![Coverage Status](https://coveralls.io/repos/github/myzhan/avroipc/badge.svg?branch=master)](https://coveralls.io/github/myzhan/avroipc?branch=master)
 
 # avroipc
