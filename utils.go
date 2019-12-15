@@ -2,7 +2,6 @@ package avroipc
 
 import (
 	"bytes"
-	"crypto/md5"
 	"github.com/linkedin/goavro"
 	"io"
 	"log"
@@ -42,12 +41,4 @@ func messageHeader() []byte {
 	buf.Write([]byte("append"))
 
 	return buf.Bytes()
-}
-
-func getMD5(slice ...string) []byte {
-	h := md5.New()
-	for _, v := range slice {
-		io.WriteString(h, v)
-	}
-	return h.Sum(nil)
 }
