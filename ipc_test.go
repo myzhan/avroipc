@@ -1,6 +1,7 @@
 package avroipc
 
 import (
+	"github.com/stretchr/testify/require"
 	"log"
 	"os"
 	"testing"
@@ -15,7 +16,8 @@ func TestSend(t *testing.T) {
 	}
 
 	// flume avro instance address
-	client := NewClient(addr)
+	client, err := NewClient(addr)
+	require.NoError(t, err)
 
 	headersMap := make(map[string]string)
 	headersMap["topic"] = "myzhan"
