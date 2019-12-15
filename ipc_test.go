@@ -6,6 +6,7 @@ import (
 )
 
 func TestSend(t *testing.T) {
+	t.Skip("Skip the real test")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// flume avro instance address
