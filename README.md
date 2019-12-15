@@ -1,3 +1,6 @@
+[![Build Status](https://github.com/myzhan/avroipc/workflows/go/badge.svg)](https://github.com/myzhan/avroipc/actions?workflow=go)
+[![Coverage Status](https://coveralls.io/repos/github/myzhan/avroipc/badge.svg?branch=master)](https://coveralls.io/github/myzhan/avroipc?branch=master)
+
 # avroipc
 
 Avroipc is a pure-go-implemented client for [flume's avro source](http://flume.apache.org/FlumeUserGuide.html#avro-source).
