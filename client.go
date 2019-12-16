@@ -3,25 +3,24 @@ package avroipc
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
-	"net"
-
 	"github.com/linkedin/goavro"
 )
 
 // Client acts as an avro client
 type Client struct {
-	addr       string
-	serial     int64
-	connection *net.TCPConn
+	serial int64
 
+	connection        Transport
 	handshakeProtocol HandshakeProtocol
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
 func NewClient(addr string) (client *Client, err error) {
-	client = &Client{
-		addr: addr,
+	client = &Client{}
+
+	client.connection, err = NewSocket(addr)
+	if err != nil {
+		return nil, err
 	}
 
 	client.handshakeProtocol, err = NewHandshakeProtocol()
@@ -38,15 +37,10 @@ func NewClient(addr string) (client *Client, err error) {
 }
 
 func (client *Client) connect() (err error) {
-	tcpAddr, _ := net.ResolveTCPAddr("tcp", client.addr)
-
-	client.connection, err = net.DialTCP("tcp", nil, tcpAddr)
+	err = client.connection.Open()
 	if err != nil {
-		log.Fatalf("%v", err)
+		return err
 	}
-
-	// disable Nagle's algorithm
-	client.connection.SetNoDelay(true)
 
 	// first connect, need handshake
 	err = client.handshake()
