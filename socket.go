@@ -21,12 +21,6 @@ func NewSocketTimeout(hostPort string, timeout time.Duration) (Transport, error)
 	if err != nil {
 		return nil, err
 	}
-	if len(addr.Network()) == 0 {
-		return nil, fmt.Errorf("bad network")
-	}
-	if len(addr.String()) == 0 {
-		return nil, fmt.Errorf("bad address")
-	}
 
 	return &socket{addr: addr, timeout: timeout}, nil
 }
