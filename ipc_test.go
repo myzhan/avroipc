@@ -26,6 +26,7 @@ func TestSend(t *testing.T) {
 
 	event := NewEvent(headersMap, body)
 
-	err = client.Append(event)
+	status, err := client.Append(event)
 	require.NoError(t, err)
+	require.Equal(t, "OK", status)
 }

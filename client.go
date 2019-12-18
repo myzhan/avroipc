@@ -1,8 +1,7 @@
 package avroipc
 
 import (
-	"bytes"
-	"github.com/linkedin/goavro"
+	"fmt"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,6 +12,7 @@ type Client struct {
 
 	connection        Transport
 	framingLayer      FramingLayer
+	callProtocol      CallProtocol
 	handshakeProtocol HandshakeProtocol
 }
 
@@ -31,6 +31,15 @@ func NewClient(addr string) (client *Client, err error) {
 	}
 
 	client.framingLayer = NewFramingLayer(client.connection)
+
+	proto, err := NewAvroSourceProtocol()
+	if err != nil {
+		return nil, err
+	}
+	client.callProtocol, err = NewCallProtocol(proto)
+	if err != nil {
+		return nil, err
+	}
 
 	client.handshakeProtocol, err = NewHandshakeProtocol()
 	if err != nil {
@@ -104,24 +113,35 @@ func (client *Client) handshake() error {
 }
 
 // Append sends event to flume
-func (client *Client) Append(event *Event) error {
-	messageHeader := messageHeader()
-	payload := event.Bytes()
+func (client *Client) Append(event *Event) (string, error) {
+	datum := event.toMap()
+	method := "append"
 
-	buf := bytes.NewBuffer([]byte{})
-	buf.Write(messageHeader)
-	buf.Write(payload)
-	responseBytes, err := client.send(buf.Bytes())
+	request, err := client.callProtocol.PrepareRequest(method, datum)
 	if err != nil {
-		return err
+		return "", err
 	}
-	_ = responseBytes
-	return nil
-}
 
-// Codec is stateless and is safe to use by multiple go routines.
-var eventCodec *goavro.Codec
+	responseBytes, err := client.send(request)
+	if err != nil {
+		return "", err
+	}
 
-func init() {
-	eventCodec, _ = goavro.NewCodec(eventSchema)
+	response, responseBytes, err := client.callProtocol.ParseResponse(method, responseBytes)
+	if err != nil {
+		return "", err
+	}
+	if len(responseBytes) > 0 {
+		client.logger.WithFields(logrus.Fields{
+			"length": len(responseBytes),
+			"buffer": responseBytes,
+		}).Errorf("response buffer is not empty")
+	}
+
+	status, ok := response.(string)
+	if !ok {
+		return "", fmt.Errorf("cannot convert status to string: %v", response)
+	}
+
+	return status, nil
 }
