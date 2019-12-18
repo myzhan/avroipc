@@ -1,8 +1,5 @@
 package avroipc
 
-import "log"
-
-
 // Event acts as an avro event
 type Event struct {
 	headers map[string]string
@@ -17,14 +14,10 @@ func NewEvent(headers map[string]string, body []byte) *Event {
 	}
 }
 
-// Bytes converts event to byte array
-func (event *Event) Bytes() []byte {
-	avroFlumeEvent := make(map[string]interface{})
-	avroFlumeEvent["headers"] = event.headers
-	avroFlumeEvent["body"] = event.body
-	bin, err := eventCodec.BinaryFromNative(nil, avroFlumeEvent)
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
-	return bin
+func (e *Event) toMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	m["headers"] = e.headers
+	m["body"] = e.body
+
+	return m
 }
