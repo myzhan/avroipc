@@ -8,6 +8,7 @@ import (
 type Client interface {
 	Close() error
 	Append(event *Event) (string, error)
+	AppendBatch(event []*Event) (string, error)
 }
 
 type client struct {
@@ -98,11 +99,7 @@ func (c *client) handshake() error {
 	return nil
 }
 
-// Append sends event to flume
-func (c *client) Append(event *Event) (string, error) {
-	datum := event.toMap()
-	method := "append"
-
+func (c *client) sendMessage(method string, datum interface{}) (string, error) {
 	request, err := c.callProtocol.PrepareRequest(method, datum)
 	if err != nil {
 		return "", err
@@ -130,6 +127,23 @@ func (c *client) Append(event *Event) (string, error) {
 	}
 
 	return status, nil
+}
+
+// Append sends event to flume
+func (c *client) Append(event *Event) (string, error) {
+	datum := event.toMap()
+
+	return c.sendMessage("append", datum)
+}
+
+// Append sends events to flume
+func (c *client) AppendBatch(events []*Event) (string, error) {
+	datum := make([]map[string]interface{}, 0)
+	for _, event := range events {
+		datum = append(datum, event.toMap())
+	}
+
+	return c.sendMessage("appendBatch", datum)
 }
 
 func (c *client) Close() error {

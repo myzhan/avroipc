@@ -1,10 +1,11 @@
 package avroipc
 
 import (
-	"github.com/stretchr/testify/require"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSend(t *testing.T) {
@@ -20,24 +21,48 @@ func TestSend(t *testing.T) {
 	require.NoError(t, err)
 
 	event := &Event{
-		body: []byte("hello from go"),
+		body: []byte("hi from go"),
 		headers: map[string]string{
 			"topic":     "myzhan",
 			"timestamp": "1508740315478",
 		},
 	}
+	events := []*Event{
+		event,
+		&Event{
+			body: []byte("hello from go"),
+			headers: map[string]string{
+				"topic":     "vykulakov",
+				"timestamp": "1576795153258",
+			},
+		},
+	}
 
 	var status string
 
-	// The first append call.
-	status, err = client.Append(event)
-	require.NoError(t, err)
-	require.Equal(t, "OK", status)
+	t.Run("test append", func(t *testing.T) {
+		// The first append call.
+		status, err = client.Append(event)
+		require.NoError(t, err)
+		require.Equal(t, "OK", status)
 
-	// The second append call.
-	status, err = client.Append(event)
-	require.NoError(t, err)
-	require.Equal(t, "OK", status)
+		// The second append call.
+		status, err = client.Append(event)
+		require.NoError(t, err)
+		require.Equal(t, "OK", status)
+	})
+
+	t.Run("test appendBatch", func(t *testing.T) {
+		// The first append call.
+		status, err = client.AppendBatch(events)
+		require.NoError(t, err)
+		require.Equal(t, "OK", status)
+
+		// The second append call.
+		status, err = client.AppendBatch(events)
+		require.NoError(t, err)
+		require.Equal(t, "OK", status)
+	})
 
 	// Close the client finally.
 	require.NoError(t, client.Close())
