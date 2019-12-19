@@ -19,14 +19,26 @@ func TestSend(t *testing.T) {
 	client, err := NewClient(addr)
 	require.NoError(t, err)
 
-	headersMap := make(map[string]string)
-	headersMap["topic"] = "myzhan"
-	headersMap["timestamp"] = "1508740315478"
-	body := []byte("hello from go")
+	event := &Event{
+		body: []byte("hello from go"),
+		headers: map[string]string{
+			"topic":     "myzhan",
+			"timestamp": "1508740315478",
+		},
+	}
 
-	event := NewEvent(headersMap, body)
+	var status string
 
-	status, err := client.Append(event)
+	// The first append call.
+	status, err = client.Append(event)
 	require.NoError(t, err)
 	require.Equal(t, "OK", status)
+
+	// The second append call.
+	status, err = client.Append(event)
+	require.NoError(t, err)
+	require.Equal(t, "OK", status)
+
+	// Close the client finally.
+	require.NoError(t, client.Close())
 }
