@@ -2,108 +2,94 @@ package avroipc
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 )
 
 // Client acts as an avro client
-type Client struct {
-	serial int64
-	logger *logrus.Entry
+type Client interface {
+	Close() error
+	Append(event *Event) (string, error)
+}
 
-	connection        Transport
+type client struct {
 	framingLayer      FramingLayer
 	callProtocol      CallProtocol
 	handshakeProtocol HandshakeProtocol
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
-func NewClient(addr string) (client *Client, err error) {
-	client = &Client{}
-
-	client.logger = logrus.WithFields(logrus.Fields{
-		"name": "AvroFlumeClient",
-	})
-	client.logger.Debug("created")
-
-	client.connection, err = NewSocket(addr)
+func NewClient(addr string) (Client, error) {
+	trans, err := NewSocket(addr)
 	if err != nil {
 		return nil, err
 	}
-
-	client.framingLayer = NewFramingLayer(client.connection)
+	err = trans.Open()
+	if err != nil {
+		return nil, err
+	}
 
 	proto, err := NewAvroSourceProtocol()
 	if err != nil {
 		return nil, err
 	}
-	client.callProtocol, err = NewCallProtocol(proto)
-	if err != nil {
-		return nil, err
-	}
 
-	client.handshakeProtocol, err = NewHandshakeProtocol()
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.connect()
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
+	return NewClientWithTrans(trans, proto)
 }
 
-func (client *Client) connect() (err error) {
-	err = client.connection.Open()
+func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) {
+	c := &client{}
+	var err error
+
+	c.framingLayer = NewFramingLayer(trans)
+
+	c.callProtocol, err = NewCallProtocol(proto)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// first connect, need handshake
-	err = client.handshake()
+	c.handshakeProtocol, err = NewHandshakeProtocol()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	err = c.handshake()
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
-func (client *Client) send(request []byte) ([]byte, error) {
-	err := client.framingLayer.Write(request)
+func (c *client) send(request []byte) ([]byte, error) {
+	err := c.framingLayer.Write(request)
 	if err != nil {
 		return nil, err
 	}
-	client.logger.WithField("size", len(request)).Debug("sent request")
 
-	response, err := client.framingLayer.Read()
+	response, err := c.framingLayer.Read()
 	if err != nil {
 		return nil, err
 	}
-	client.logger.WithField("size", len(response)).Debug("read response")
 
 	return response, nil
 }
 
-func (client *Client) handshake() error {
-	client.logger.Debug("start handshake")
-
-	request, err := client.handshakeProtocol.PrepareRequest()
+func (c *client) handshake() error {
+	request, err := c.handshakeProtocol.PrepareRequest()
 	if err != nil {
 		return err
 	}
 
-	responseBytes, err := client.send(request)
+	responseBytes, err := c.send(request)
 	if err != nil {
 		return err
 	}
 
-	needResend, err := client.handshakeProtocol.ProcessResponse(responseBytes)
+	needResend, err := c.handshakeProtocol.ProcessResponse(responseBytes)
 	if err != nil {
 		return err
 	}
 	if needResend {
-		err = client.handshake()
+		err = c.handshake()
 		if err != nil {
 			return err
 		}
@@ -113,29 +99,29 @@ func (client *Client) handshake() error {
 }
 
 // Append sends event to flume
-func (client *Client) Append(event *Event) (string, error) {
+func (c *client) Append(event *Event) (string, error) {
 	datum := event.toMap()
 	method := "append"
 
-	request, err := client.callProtocol.PrepareRequest(method, datum)
+	request, err := c.callProtocol.PrepareRequest(method, datum)
 	if err != nil {
 		return "", err
 	}
 
-	responseBytes, err := client.send(request)
+	responseBytes, err := c.send(request)
 	if err != nil {
 		return "", err
 	}
 
-	response, responseBytes, err := client.callProtocol.ParseResponse(method, responseBytes)
+	response, responseBytes, err := c.callProtocol.ParseResponse(method, responseBytes)
 	if err != nil {
 		return "", err
 	}
-	if len(responseBytes) > 0 {
-		client.logger.WithFields(logrus.Fields{
-			"length": len(responseBytes),
-			"buffer": responseBytes,
-		}).Errorf("response buffer is not empty")
+
+	r := responseBytes
+	n := len(responseBytes)
+	if n > 0 {
+		return "", fmt.Errorf("response buffer is not empty: len=%d, rest=0x%X", n, r)
 	}
 
 	status, ok := response.(string)
@@ -144,4 +130,8 @@ func (client *Client) Append(event *Event) (string, error) {
 	}
 
 	return status, nil
+}
+
+func (c *client) Close() error {
+	return c.framingLayer.Close()
 }
