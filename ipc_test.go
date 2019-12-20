@@ -3,6 +3,7 @@ package avroipc
 import (
 	"log"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,8 +17,16 @@ func TestSend(t *testing.T) {
 		t.Skip("The FLUME_SERVER_ADDRESS environment variable is not set")
 	}
 
+	level := os.Getenv("FLUME_COMPRESSION_LEVEL")
+	levelInt := 0
+	if level != "" {
+		var err error
+		levelInt, err = strconv.Atoi(level)
+		require.NoError(t, err)
+	}
+
 	// flume avro instance address
-	client, err := NewClient(addr)
+	client, err := NewClient(addr, levelInt)
 	require.NoError(t, err)
 
 	event := &Event{

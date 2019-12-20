@@ -18,10 +18,16 @@ type client struct {
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
-func NewClient(addr string) (Client, error) {
+func NewClient(addr string, compressionLevel int) (Client, error) {
 	trans, err := NewSocket(addr)
 	if err != nil {
 		return nil, err
+	}
+	if compressionLevel > 0 {
+		trans, err = NewZlibTransport(trans, compressionLevel)
+		if err != nil {
+			return nil, err
+		}
 	}
 	err = trans.Open()
 	if err != nil {
