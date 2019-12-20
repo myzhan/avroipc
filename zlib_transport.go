@@ -60,3 +60,12 @@ func (t *zlibTransport) Read(p []byte) (int, error) {
 func (t *zlibTransport) Write(p []byte) (int, error) {
 	return t.w.Write(p)
 }
+
+func (t *zlibTransport) Flush() error {
+	err := t.w.Flush()
+	if err != nil {
+		return err
+	}
+
+	return t.trans.Flush()
+}

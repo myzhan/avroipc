@@ -64,6 +64,14 @@ func TestSocket(t *testing.T) {
 		require.NoError(t, trans.Close())
 	})
 
+	t.Run("flush", func(t *testing.T) {
+		trans, err := avroipc.NewSocket("")
+		require.NoError(t, err)
+
+		err = trans.Flush()
+		require.NoError(t, err)
+	})
+
 	t.Run("success", func(t *testing.T) {
 		addr, clean := runServer(t)
 

@@ -71,3 +71,7 @@ func (s *socket) Write(buf []byte) (int, error) {
 
 	return s.conn.Write(buf)
 }
+
+func (s *socket) Flush() error {
+	return nil
+}

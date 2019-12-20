@@ -12,6 +12,7 @@ type Client interface {
 }
 
 type client struct {
+	transport         Transport
 	framingLayer      FramingLayer
 	callProtocol      CallProtocol
 	handshakeProtocol HandshakeProtocol
@@ -46,6 +47,7 @@ func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) 
 	c := &client{}
 	var err error
 
+	c.transport = trans
 	c.framingLayer = NewFramingLayer(trans)
 
 	c.callProtocol, err = NewCallProtocol(proto)
@@ -68,6 +70,11 @@ func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) 
 
 func (c *client) send(request []byte) ([]byte, error) {
 	err := c.framingLayer.Write(request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.transport.Flush()
 	if err != nil {
 		return nil, err
 	}

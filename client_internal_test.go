@@ -8,25 +8,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func prepare() (*client, *mocks.MockFramingLayer, *mocks.MockCallProtocol, *mocks.MockHandshakeProtocol) {
+func prepare() (*client, *mocks.MockTransport, *mocks.MockFramingLayer, *mocks.MockCallProtocol, *mocks.MockHandshakeProtocol) {
+	t := &mocks.MockTransport{}
 	f := &mocks.MockFramingLayer{}
 	p := &mocks.MockCallProtocol{}
 	h := &mocks.MockHandshakeProtocol{}
 
 	c := &client{
+		transport:         t,
 		framingLayer:      f,
 		callProtocol:      p,
 		handshakeProtocol: h,
 	}
 
-	return c, f, p, h
+	return c, t, f, p, h
 }
 
 func TestClient_handshake(t *testing.T) {
 	testErr := errors.New("test error")
 
 	t.Run("succeed", func(t *testing.T) {
-		c, f, _, h := prepare()
+		c, x, f, _, h := prepare()
 
 		request1 := []byte{0x0A, 0x0B}
 		request2 := []byte{0x1A, 0x1B}
@@ -36,12 +38,14 @@ func TestClient_handshake(t *testing.T) {
 		// The first handshake request: emulate an unknown client protocol
 		h.On("PrepareRequest").Return(request1, nil).Once()
 		f.On("Write", request1).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response1, nil).Once()
 		h.On("ProcessResponse", response1).Return(true, nil).Once()
 
 		// The second handshake request: the server already knows the client protocol
 		h.On("PrepareRequest").Return(request2, nil).Once()
 		f.On("Write", request2).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response2, nil).Once()
 		h.On("ProcessResponse", response2).Return(false, nil).Once()
 
@@ -52,7 +56,7 @@ func TestClient_handshake(t *testing.T) {
 	})
 
 	t.Run("preparing request failed", func(t *testing.T) {
-		c, f, _, h := prepare()
+		c, _, f, _, h := prepare()
 
 		request := []byte{}
 
@@ -77,10 +81,11 @@ func TestClient_Append(t *testing.T) {
 	prepEvent := origEvent.toMap()
 
 	t.Run("succeed", func(t *testing.T) {
-		c, f, p, _ := prepare()
+		c, x, f, p, _ := prepare()
 
 		p.On("PrepareRequest", method, prepEvent).Return(request, nil)
 		f.On("Write", request).Return(nil)
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil)
 		p.On("ParseResponse", method, response).Return("SOME", []byte{}, nil)
 
@@ -92,10 +97,11 @@ func TestClient_Append(t *testing.T) {
 	})
 
 	t.Run("incorrect status type", func(t *testing.T) {
-		c, f, p, _ := prepare()
+		c, x, f, p, _ := prepare()
 
 		p.On("PrepareRequest", method, prepEvent).Return(request, nil).Once()
 		f.On("Write", request).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil).Once()
 		p.On("ParseResponse", method, response).Return(0, []byte{}, nil).Once()
 
@@ -107,10 +113,11 @@ func TestClient_Append(t *testing.T) {
 	})
 
 	t.Run("non-empty response buffer", func(t *testing.T) {
-		c, f, p, _ := prepare()
+		c, x, f, p, _ := prepare()
 
 		p.On("PrepareRequest", method, prepEvent).Return(request, nil).Once()
 		f.On("Write", request).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil).Once()
 		p.On("ParseResponse", method, response).Return("SOME", remaining, nil).Once()
 
@@ -139,10 +146,11 @@ func TestClient_AppendBatch(t *testing.T) {
 	}
 
 	t.Run("succeed", func(t *testing.T) {
-		c, f, p, _ := prepare()
+		c, x, f, p, _ := prepare()
 
 		p.On("PrepareRequest", method, prepEvents).Return(request, nil)
 		f.On("Write", request).Return(nil)
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil)
 		p.On("ParseResponse", method, response).Return("SOME", []byte{}, nil)
 
@@ -154,10 +162,11 @@ func TestClient_AppendBatch(t *testing.T) {
 	})
 
 	t.Run("incorrect status type", func(t *testing.T) {
-		c, f, p, _ := prepare()
+		c, x, f, p, _ := prepare()
 
 		p.On("PrepareRequest", method, prepEvents).Return(request, nil).Once()
 		f.On("Write", request).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil).Once()
 		p.On("ParseResponse", method, response).Return(0, []byte{}, nil).Once()
 
@@ -169,10 +178,11 @@ func TestClient_AppendBatch(t *testing.T) {
 	})
 
 	t.Run("non-empty response buffer", func(t *testing.T) {
-		c, f, p, _ := prepare()
+		c, x, f, p, _ := prepare()
 
 		p.On("PrepareRequest", method, prepEvents).Return(request, nil).Once()
 		f.On("Write", request).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil).Once()
 		p.On("ParseResponse", method, response).Return("SOME", remaining, nil).Once()
 
@@ -188,7 +198,7 @@ func TestClient_Close(t *testing.T) {
 	testErr := errors.New("test error")
 
 	t.Run("succeed", func(t *testing.T) {
-		c, f, _, _ := prepare()
+		c, _, f, _, _ := prepare()
 
 		f.On("Close").Return(nil)
 
@@ -198,7 +208,7 @@ func TestClient_Close(t *testing.T) {
 	})
 
 	t.Run("framing layer error", func(t *testing.T) {
-		c, f, _, _ := prepare()
+		c, _, f, _, _ := prepare()
 
 		f.On("Close").Return(testErr)
 
