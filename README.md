@@ -32,11 +32,18 @@ go get
 go test ./...
 ```
 
-To run test with a real client run the following command:
+To run a test with a real client run the following command:
 ```bash
 FLUME_SERVER_ADDRESS=127.0.0.1:20201 go test -count=1 -run TestSend
 ```
 where `127.0.0.1:20201` is a real Apache Flume server, `-count=1` is a way to disable Go build cache.
+
+If you want to run a test with a real client and enabled data compression run the following command:
+```bash
+FLUME_SERVER_ADDRESS=127.0.0.1:20201 FLUME_COMPRESSION_LEVEL=1 go test -count=1 -run TestSend
+```
+where `FLUME_COMPRESSION_LEVEL` is a new environment variable to specify wanted compression level.
+Support values from `1` to `9`.
 
 ## License
 
