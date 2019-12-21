@@ -12,16 +12,23 @@ type Client interface {
 }
 
 type client struct {
+	transport         Transport
 	framingLayer      FramingLayer
 	callProtocol      CallProtocol
 	handshakeProtocol HandshakeProtocol
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
-func NewClient(addr string) (Client, error) {
+func NewClient(addr string, compressionLevel int) (Client, error) {
 	trans, err := NewSocket(addr)
 	if err != nil {
 		return nil, err
+	}
+	if compressionLevel > 0 {
+		trans, err = NewZlibTransport(trans, compressionLevel)
+		if err != nil {
+			return nil, err
+		}
 	}
 	err = trans.Open()
 	if err != nil {
@@ -40,6 +47,7 @@ func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) 
 	c := &client{}
 	var err error
 
+	c.transport = trans
 	c.framingLayer = NewFramingLayer(trans)
 
 	c.callProtocol, err = NewCallProtocol(proto)
@@ -62,6 +70,11 @@ func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) 
 
 func (c *client) send(request []byte) ([]byte, error) {
 	err := c.framingLayer.Write(request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.transport.Flush()
 	if err != nil {
 		return nil, err
 	}
