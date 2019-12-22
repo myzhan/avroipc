@@ -25,22 +25,24 @@ func TestSend(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	bufferSize := 8
+
 	// flume avro instance address
-	client, err := NewClient(addr, levelInt)
+	client, err := NewClient(addr, bufferSize, levelInt)
 	require.NoError(t, err)
 
 	event := &Event{
-		body: []byte("hi from go"),
-		headers: map[string]string{
+		Body: []byte("hi from go"),
+		Headers: map[string]string{
 			"topic":     "myzhan",
 			"timestamp": "1508740315478",
 		},
 	}
 	events := []*Event{
 		event,
-		&Event{
-			body: []byte("hello from go"),
-			headers: map[string]string{
+		{
+			Body: []byte("hello from go"),
+			Headers: map[string]string{
 				"topic":     "vykulakov",
 				"timestamp": "1576795153258",
 			},
