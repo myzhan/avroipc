@@ -77,7 +77,7 @@ func TestClient_Append(t *testing.T) {
 	response := []byte{0x1A, 0x1B}
 	remaining := []byte{0x2A, 0x2B}
 
-	origEvent := &Event{headers: map[string]string{}, body: []byte("test body")}
+	origEvent := &Event{Headers: map[string]string{}, Body: []byte("test body")}
 	prepEvent := origEvent.toMap()
 
 	t.Run("succeed", func(t *testing.T) {
@@ -137,8 +137,8 @@ func TestClient_AppendBatch(t *testing.T) {
 	remaining := []byte{0x2A, 0x2B}
 
 	origEvents := []*Event{
-		{headers: map[string]string{}, body: []byte("test body 1")},
-		{headers: map[string]string{}, body: []byte("test body 2")},
+		{Headers: map[string]string{}, Body: []byte("test body 1")},
+		{Headers: map[string]string{}, Body: []byte("test body 2")},
 	}
 	prepEvents := []map[string]interface{}{
 		origEvents[0].toMap(),

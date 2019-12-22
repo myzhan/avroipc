@@ -12,16 +12,36 @@ Thanks to Linkedin's [goavro](https://github.com/linkedin/goavro)!
 ## Usage
 
 ```go
-// flume avro instance address
-client := NewClient("localhost:20200")
+package main
 
-headersMap := make(map[string]string)
-headersMap["topic"] = "myzhan"
-headersMap["timestamp"] = "1508740315478"
-body := []byte("hello from go")
+import (
+    "log"
 
-event := NewEvent(headersMap, body)
-client.Append(event)
+    "github.com/myzhan/avroipc"
+)
+
+func main() {
+    // flume avro instance address
+    client, err := avroipc.NewClient("localhost:20200", 1024, 6)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    event := &avroipc.Event{
+        Body: []byte("hello from go"),
+    	Headers: map[string]string {
+            "topic": "myzhan",
+            "timestamp": "1508740315478",
+        },
+    }
+    status, err := client.Append(event)
+    if err != nil {
+        log.Fatal(err)
+    }
+    if status != "OK" {
+        log.Fatalf("Bad status: %s", status)
+    }
+}
 ```
 
 ## Development
