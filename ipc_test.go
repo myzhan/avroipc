@@ -40,7 +40,7 @@ func TestSend(t *testing.T) {
 	}
 	events := []*Event{
 		event,
-		&Event{
+		{
 			Body: []byte("hello from go"),
 			Headers: map[string]string{
 				"topic":     "vykulakov",
