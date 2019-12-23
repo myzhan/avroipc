@@ -22,7 +22,7 @@ import (
 
 func main() {
     // flume avro instance address
-    client, err := avroipc.NewClient("localhost:20200", 1024, 6)
+    client, err := avroipc.NewClient("localhost:20200", 0, 1024, 6)
     if err != nil {
         log.Fatal(err)
     }

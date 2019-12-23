@@ -1,10 +1,12 @@
 package avroipc_test
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/myzhan/avroipc"
 	"github.com/stretchr/testify/require"
@@ -21,21 +23,20 @@ func runServer(t *testing.T) (string, func() error) {
 		}
 		defer conn.Close()
 
-		b := make([]byte, 4)
-		n, err := io.ReadFull(conn, b)
-		if err == io.EOF {
-			return nil
+		s := bufio.NewScanner(conn)
+		for s.Scan() {
+			switch s.Text() {
+			case "ping":
+				_, _ = conn.Write([]byte("pong"))
+			case "sleep":
+				time.Sleep(2 * time.Second)
+				_, _ = conn.Write([]byte("sleep"))
+			default:
+				return fmt.Errorf("unexpected action: %s", s.Text())
+			}
 		}
-		if err != nil {
+		if s.Err() != nil {
 			return err
-		}
-
-		act := string(b[:n])
-		switch act {
-		case "ping":
-			_, _ = conn.Write([]byte("pong"))
-		default:
-			return fmt.Errorf("unexpected action: %s", act)
 		}
 
 		return nil
@@ -81,10 +82,10 @@ func TestSocket(t *testing.T) {
 		err = trans.Open()
 		require.NoError(t, err)
 
-		b = []byte("ping")
+		b = []byte("ping\n")
 		n, err = trans.Write(b)
 		require.NoError(t, err)
-		require.Equal(t, 4, n)
+		require.Equal(t, 5, n)
 
 		b = make([]byte, 4)
 		n, err = io.ReadFull(trans, b)
@@ -134,6 +135,32 @@ func TestSocket(t *testing.T) {
 
 		require.NoError(t, trans.Open())
 		require.Error(t, trans.Open())
+
+		require.NoError(t, clean())
+		require.NoError(t, trans.Close())
+	})
+
+	t.Run("read/write timeout", func(t *testing.T) {
+		addr, clean := runServer(t)
+
+		trans, err := avroipc.NewSocket(addr)
+		require.NoError(t, err)
+
+		err = trans.Open()
+		require.NoError(t, err)
+
+		err = trans.SetDeadline(time.Now().Add(time.Second))
+		require.NoError(t, err)
+
+		b = []byte("sleep\n")
+		n, err = trans.Write(b)
+		require.NoError(t, err)
+		require.Equal(t, 6, n)
+
+		b = make([]byte, 5)
+		n, err = io.ReadFull(trans, b)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "i/o timeout")
 
 		require.NoError(t, clean())
 		require.NoError(t, trans.Close())

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"time"
 )
 
 const maxFrameSize = 10 * 1024
@@ -15,6 +16,8 @@ type FramingLayer interface {
 	Write(p []byte) error
 
 	Close() error
+
+	SetDeadline(t time.Time) error
 }
 
 // Framing is a part on the Avro RPC protocol.
@@ -135,4 +138,8 @@ func (f *framingLayer) writeFrames(p []byte) (err error) {
 
 func (f *framingLayer) Close() error {
 	return f.trans.Close()
+}
+
+func (f *framingLayer) SetDeadline(d time.Time) error {
+	return f.trans.SetDeadline(d)
 }

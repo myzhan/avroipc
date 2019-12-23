@@ -2,6 +2,7 @@ package avroipc
 
 import (
 	"fmt"
+	"time"
 )
 
 // Client acts as an avro client
@@ -12,6 +13,8 @@ type Client interface {
 }
 
 type client struct {
+	sendTimeout time.Duration
+
 	transport         Transport
 	framingLayer      FramingLayer
 	callProtocol      CallProtocol
@@ -19,7 +22,7 @@ type client struct {
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
-func NewClient(addr string, bufferSize, compressionLevel int) (Client, error) {
+func NewClient(addr string, sendTimeout time.Duration, bufferSize, compressionLevel int) (Client, error) {
 	trans, err := NewSocket(addr)
 	if err != nil {
 		return nil, err
@@ -43,12 +46,13 @@ func NewClient(addr string, bufferSize, compressionLevel int) (Client, error) {
 		return nil, err
 	}
 
-	return NewClientWithTrans(trans, proto)
+	return NewClientWithTrans(trans, proto, sendTimeout)
 }
 
-func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) {
-	c := &client{}
+func NewClientWithTrans(trans Transport, proto MessageProtocol, sendTimeout time.Duration) (Client, error) {
 	var err error
+	c := &client{}
+	c.sendTimeout = sendTimeout
 
 	c.transport = trans
 	c.framingLayer = NewFramingLayer(trans)
@@ -72,7 +76,12 @@ func NewClientWithTrans(trans Transport, proto MessageProtocol) (Client, error) 
 }
 
 func (c *client) send(request []byte) ([]byte, error) {
-	err := c.framingLayer.Write(request)
+	err := c.applyDeadline()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.framingLayer.Write(request)
 	if err != nil {
 		return nil, err
 	}
@@ -145,6 +154,15 @@ func (c *client) sendMessage(method string, datum interface{}) (string, error) {
 	return status, nil
 }
 
+func (c *client) applyDeadline() error {
+	if c.sendTimeout > 0 {
+		d := time.Now().Add(c.sendTimeout)
+		return c.framingLayer.SetDeadline(d)
+	}
+
+	return nil
+}
+
 // Append sends event to flume
 func (c *client) Append(event *Event) (string, error) {
 	datum := event.toMap()
@@ -163,5 +181,10 @@ func (c *client) AppendBatch(events []*Event) (string, error) {
 }
 
 func (c *client) Close() error {
+	err := c.applyDeadline()
+	if err != nil {
+		return err
+	}
+
 	return c.framingLayer.Close()
 }

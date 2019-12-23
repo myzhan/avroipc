@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/stretchr/testify/mock"
 )
 
@@ -20,5 +22,10 @@ func (f *MockFramingLayer) Write(p []byte) error {
 
 func (f *MockFramingLayer) Close() error {
 	args := f.Called()
+	return args.Error(0)
+}
+
+func (f *MockFramingLayer) SetDeadline(t time.Time) error {
+	args := f.Called(t)
 	return args.Error(0)
 }

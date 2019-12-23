@@ -3,11 +3,13 @@ package avroipc_test
 import (
 	"bytes"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/myzhan/avroipc"
 	"github.com/myzhan/avroipc/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func prepareFramingLayer() (avroipc.FramingLayer, *mocks.MockTransport) {
@@ -204,7 +206,7 @@ func TestFramingLayer_Write(t *testing.T) {
 }
 
 func TestFramingLayer_Close(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("succeed", func(t *testing.T) {
 		f, m := prepareFramingLayer()
 
 		m.On("Close").Return(nil).Once()
@@ -223,4 +225,15 @@ func TestFramingLayer_Close(t *testing.T) {
 		require.EqualError(t, err, "test error")
 		m.AssertExpectations(t)
 	})
+}
+
+func TestFramingLayer_SetDeadline(t *testing.T) {
+	d := time.Now()
+	f, m := prepareFramingLayer()
+
+	m.On("SetDeadline", d).Return(nil).Once()
+
+	err := f.SetDeadline(d)
+	require.NoError(t, err)
+	m.AssertExpectations(t)
 }

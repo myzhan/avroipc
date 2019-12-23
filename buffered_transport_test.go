@@ -2,11 +2,13 @@ package avroipc_test
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/myzhan/avroipc"
 	"github.com/myzhan/avroipc/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func prepareBufferedTransport() (avroipc.Transport, *mocks.MockTransport) {
@@ -239,4 +241,15 @@ func TestBufferedTransport_Flush(t *testing.T) {
 		require.EqualError(t, err, "test error")
 		m.AssertExpectations(t)
 	})
+}
+
+func TestBufferedTransport_SetDeadline(t *testing.T) {
+	d := time.Now()
+	b, m := prepareBufferedTransport()
+
+	m.On("SetDeadline", d).Return(nil).Once()
+
+	err := b.SetDeadline(d)
+	require.NoError(t, err)
+	m.AssertExpectations(t)
 }

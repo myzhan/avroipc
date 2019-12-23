@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
+	"time"
 )
 
 type MockTransport struct {
@@ -30,5 +31,10 @@ func (t *MockTransport) Write(p []byte) (n int, err error) {
 
 func (t *MockTransport) Flush() error {
 	args := t.Called()
+	return args.Error(0)
+}
+
+func (t *MockTransport) SetDeadline(d time.Time) error {
+	args := t.Called(d)
 	return args.Error(0)
 }

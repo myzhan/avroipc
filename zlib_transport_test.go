@@ -3,10 +3,12 @@ package avroipc_test
 import (
 	"bytes"
 	"errors"
-	"github.com/myzhan/avroipc"
-	"github.com/stretchr/testify/require"
 	"io"
 	"testing"
+	"time"
+
+	"github.com/myzhan/avroipc"
+	"github.com/stretchr/testify/require"
 )
 
 var data = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
@@ -26,6 +28,10 @@ func (m *mockTransport) Close() error {
 
 func (m *mockTransport) Flush() error {
 	return nil
+}
+
+func (m *mockTransport) SetDeadline(time.Time) error {
+	return errors.New("test error")
 }
 
 func TestZlibTransport_Open(t *testing.T) {
@@ -103,5 +109,15 @@ func TestZlibTransport_Write(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, flushed, m.Bytes())
+	})
+	t.Run("set deadline", func(t *testing.T) {
+		d := time.Now()
+		m := &mockTransport{}
+
+		trans, err := avroipc.NewZlibTransport(m, 1)
+		require.NoError(t, err)
+
+		err = trans.SetDeadline(d)
+		require.EqualError(t, err, "test error")
 	})
 }
