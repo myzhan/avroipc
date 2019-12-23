@@ -2,6 +2,7 @@ package avroipc
 
 import (
 	"bufio"
+	"time"
 )
 
 type bufferedTransport struct {
@@ -40,4 +41,8 @@ func (p *bufferedTransport) Flush() error {
 		return err
 	}
 	return p.trans.Flush()
+}
+
+func (p *bufferedTransport) SetDeadline(t time.Time) error {
+	return p.trans.SetDeadline(t)
 }

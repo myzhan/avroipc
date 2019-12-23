@@ -75,3 +75,7 @@ func (s *socket) Write(buf []byte) (int, error) {
 func (s *socket) Flush() error {
 	return nil
 }
+
+func (s *socket) SetDeadline(d time.Time) error {
+	return s.conn.SetDeadline(d)
+}

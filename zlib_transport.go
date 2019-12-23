@@ -3,6 +3,7 @@ package avroipc
 import (
 	"compress/zlib"
 	"io"
+	"time"
 )
 
 type zlibTransport struct {
@@ -68,4 +69,8 @@ func (t *zlibTransport) Flush() error {
 	}
 
 	return t.trans.Flush()
+}
+
+func (t *zlibTransport) SetDeadline(d time.Time) error {
+	return t.trans.SetDeadline(d)
 }

@@ -2,6 +2,7 @@ package avroipc
 
 import (
 	"io"
+	"time"
 )
 
 type Transport interface {
@@ -9,4 +10,5 @@ type Transport interface {
 
 	Open() error
 	Flush() error
+	SetDeadline(t time.Time) error
 }

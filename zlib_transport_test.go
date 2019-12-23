@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"io"
 	"testing"
+	"time"
 )
 
 var data = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
@@ -25,6 +26,10 @@ func (m *mockTransport) Close() error {
 }
 
 func (m *mockTransport) Flush() error {
+	return nil
+}
+
+func (m *mockTransport) SetDeadline(d time.Time) error {
 	return nil
 }
 
