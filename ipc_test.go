@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,9 +27,10 @@ func TestSend(t *testing.T) {
 	}
 
 	bufferSize := 8
+	sendTimeout := time.Duration(0)
 
 	// flume avro instance address
-	client, err := NewClient(addr, bufferSize, levelInt)
+	client, err := NewClient(addr, sendTimeout, bufferSize, levelInt)
 	require.NoError(t, err)
 
 	event := &Event{
