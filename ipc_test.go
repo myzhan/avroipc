@@ -27,10 +27,12 @@ func TestSend(t *testing.T) {
 	}
 
 	bufferSize := 8
+
+	timeout := time.Duration(0)
 	sendTimeout := time.Duration(0)
 
 	// flume avro instance address
-	client, err := NewClient(addr, sendTimeout, bufferSize, levelInt)
+	client, err := NewClient(addr, timeout, sendTimeout, bufferSize, levelInt)
 	require.NoError(t, err)
 
 	event := &Event{

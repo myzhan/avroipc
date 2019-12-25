@@ -9,7 +9,7 @@ import (
 type Client interface {
 	Close() error
 	Append(event *Event) (string, error)
-	AppendBatch(event []*Event) (string, error)
+	AppendBatch(events []*Event) (string, error)
 }
 
 type client struct {
@@ -22,8 +22,8 @@ type client struct {
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
-func NewClient(addr string, sendTimeout time.Duration, bufferSize, compressionLevel int) (Client, error) {
-	trans, err := NewSocket(addr)
+func NewClient(addr string, timeout, sendTimeout time.Duration, bufferSize, compressionLevel int) (Client, error) {
+	trans, err := NewSocketTimeout(addr, timeout)
 	if err != nil {
 		return nil, err
 	}
