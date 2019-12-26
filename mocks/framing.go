@@ -17,8 +17,3 @@ func (f *MockFramingLayer) Write(p []byte) error {
 	args := f.Called(p)
 	return args.Error(0)
 }
-
-func (f *MockFramingLayer) Close() error {
-	args := f.Called()
-	return args.Error(0)
-}

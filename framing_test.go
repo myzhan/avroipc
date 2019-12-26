@@ -203,25 +203,3 @@ func TestFramingLayer_Write(t *testing.T) {
 		m.AssertExpectations(t)
 	})
 }
-
-func TestFramingLayer_Close(t *testing.T) {
-	t.Run("succeed", func(t *testing.T) {
-		f, m := prepareFramingLayer()
-
-		m.On("Close").Return(nil).Once()
-
-		err := f.Close()
-		require.NoError(t, err)
-		m.AssertExpectations(t)
-	})
-
-	t.Run("failed", func(t *testing.T) {
-		f, m := prepareFramingLayer()
-
-		m.On("Close").Return(fmt.Errorf("test error")).Once()
-
-		err := f.Close()
-		require.EqualError(t, err, "test error")
-		m.AssertExpectations(t)
-	})
-}

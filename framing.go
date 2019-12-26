@@ -11,10 +11,7 @@ const maxFrameSize = 10 * 1024
 
 type FramingLayer interface {
 	Read() ([]byte, error)
-
 	Write(p []byte) error
-
-	Close() error
 }
 
 // Framing is a part on the Avro RPC protocol.
@@ -135,8 +132,4 @@ func (f *framingLayer) writeFrames(p []byte) (err error) {
 	}
 
 	return
-}
-
-func (f *framingLayer) Close() error {
-	return f.trans.Close()
 }
