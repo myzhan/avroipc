@@ -198,22 +198,22 @@ func TestClient_Close(t *testing.T) {
 	testErr := errors.New("test error")
 
 	t.Run("succeed", func(t *testing.T) {
-		c, _, f, _, _ := prepare()
+		c, x, _, _, _ := prepare()
 
-		f.On("Close").Return(nil)
+		x.On("Close").Return(nil)
 
 		err := c.Close()
 		require.NoError(t, err)
-		f.AssertExpectations(t)
+		x.AssertExpectations(t)
 	})
 
 	t.Run("framing layer error", func(t *testing.T) {
-		c, _, f, _, _ := prepare()
+		c, x, _, _, _ := prepare()
 
-		f.On("Close").Return(testErr)
+		x.On("Close").Return(testErr)
 
 		err := c.Close()
 		require.EqualError(t, err, "test error")
-		f.AssertExpectations(t)
+		x.AssertExpectations(t)
 	})
 }

@@ -186,5 +186,5 @@ func (c *client) Close() error {
 		return err
 	}
 
-	return c.framingLayer.Close()
+	return c.transport.Close()
 }
