@@ -75,7 +75,6 @@ func TestClient_Append(t *testing.T) {
 
 	request := []byte{0x0A, 0x0B}
 	response := []byte{0x1A, 0x1B}
-	remaining := []byte{0x2A, 0x2B}
 
 	origEvent := &Event{Headers: map[string]string{}, Body: []byte("test body")}
 	prepEvent := origEvent.toMap()
@@ -87,7 +86,7 @@ func TestClient_Append(t *testing.T) {
 		f.On("Write", request).Return(nil)
 		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil)
-		p.On("ParseResponse", method, response).Return("SOME", []byte{}, nil)
+		p.On("ParseResponse", method, response).Return("SOME", nil)
 
 		status, err := c.Append(origEvent)
 		require.NoError(t, err)
@@ -103,26 +102,10 @@ func TestClient_Append(t *testing.T) {
 		f.On("Write", request).Return(nil).Once()
 		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil).Once()
-		p.On("ParseResponse", method, response).Return(0, []byte{}, nil).Once()
+		p.On("ParseResponse", method, response).Return(0, nil).Once()
 
 		status, err := c.Append(origEvent)
 		require.EqualError(t, err, "cannot convert status to string: 0")
-		require.Equal(t, "", status)
-		p.AssertExpectations(t)
-		f.AssertExpectations(t)
-	})
-
-	t.Run("non-empty response buffer", func(t *testing.T) {
-		c, x, f, p, _ := prepare()
-
-		p.On("PrepareRequest", method, prepEvent).Return(request, nil).Once()
-		f.On("Write", request).Return(nil).Once()
-		x.On("Flush").Return(nil).Once()
-		f.On("Read").Return(response, nil).Once()
-		p.On("ParseResponse", method, response).Return("SOME", remaining, nil).Once()
-
-		status, err := c.Append(origEvent)
-		require.EqualError(t, err, "response buffer is not empty: len=2, rest=0x2A2B")
 		require.Equal(t, "", status)
 		p.AssertExpectations(t)
 		f.AssertExpectations(t)
@@ -134,7 +117,6 @@ func TestClient_AppendBatch(t *testing.T) {
 
 	request := []byte{0x0A, 0x0B}
 	response := []byte{0x1A, 0x1B}
-	remaining := []byte{0x2A, 0x2B}
 
 	origEvents := []*Event{
 		{Headers: map[string]string{}, Body: []byte("test body 1")},
@@ -152,7 +134,7 @@ func TestClient_AppendBatch(t *testing.T) {
 		f.On("Write", request).Return(nil)
 		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil)
-		p.On("ParseResponse", method, response).Return("SOME", []byte{}, nil)
+		p.On("ParseResponse", method, response).Return("SOME", nil)
 
 		status, err := c.AppendBatch(origEvents)
 		require.NoError(t, err)
@@ -168,26 +150,10 @@ func TestClient_AppendBatch(t *testing.T) {
 		f.On("Write", request).Return(nil).Once()
 		x.On("Flush").Return(nil).Once()
 		f.On("Read").Return(response, nil).Once()
-		p.On("ParseResponse", method, response).Return(0, []byte{}, nil).Once()
+		p.On("ParseResponse", method, response).Return(0, nil).Once()
 
 		status, err := c.AppendBatch(origEvents)
 		require.EqualError(t, err, "cannot convert status to string: 0")
-		require.Equal(t, "", status)
-		p.AssertExpectations(t)
-		f.AssertExpectations(t)
-	})
-
-	t.Run("non-empty response buffer", func(t *testing.T) {
-		c, x, f, p, _ := prepare()
-
-		p.On("PrepareRequest", method, prepEvents).Return(request, nil).Once()
-		f.On("Write", request).Return(nil).Once()
-		x.On("Flush").Return(nil).Once()
-		f.On("Read").Return(response, nil).Once()
-		p.On("ParseResponse", method, response).Return("SOME", remaining, nil).Once()
-
-		status, err := c.AppendBatch(origEvents)
-		require.EqualError(t, err, "response buffer is not empty: len=2, rest=0x2A2B")
 		require.Equal(t, "", status)
 		p.AssertExpectations(t)
 		f.AssertExpectations(t)
