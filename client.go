@@ -157,7 +157,7 @@ func (c *client) sendMessage(method string, datum interface{}) (string, error) {
 func (c *client) applyDeadline() error {
 	if c.sendTimeout > 0 {
 		d := time.Now().Add(c.sendTimeout)
-		return c.framingLayer.SetDeadline(d)
+		return c.transport.SetDeadline(d)
 	}
 
 	return nil

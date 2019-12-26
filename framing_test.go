@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/myzhan/avroipc"
 	"github.com/myzhan/avroipc/mocks"
@@ -225,15 +224,4 @@ func TestFramingLayer_Close(t *testing.T) {
 		require.EqualError(t, err, "test error")
 		m.AssertExpectations(t)
 	})
-}
-
-func TestFramingLayer_SetDeadline(t *testing.T) {
-	d := time.Now()
-	f, m := prepareFramingLayer()
-
-	m.On("SetDeadline", d).Return(nil).Once()
-
-	err := f.SetDeadline(d)
-	require.NoError(t, err)
-	m.AssertExpectations(t)
 }
