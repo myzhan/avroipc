@@ -7,7 +7,7 @@ import (
 
 // Client acts as an avro client
 type Client interface {
-	Close() error
+	Close () error
 	Append(event *Event) (string, error)
 	AppendBatch(events []*Event) (string, error)
 }
