@@ -135,15 +135,9 @@ func (c *client) sendMessage(method string, datum interface{}) (string, error) {
 		return "", err
 	}
 
-	response, responseBytes, err := c.callProtocol.ParseResponse(method, responseBytes)
+	response, err := c.callProtocol.ParseResponse(method, responseBytes)
 	if err != nil {
 		return "", err
-	}
-
-	r := responseBytes
-	n := len(responseBytes)
-	if n > 0 {
-		return "", fmt.Errorf("response buffer is not empty: len=%d, rest=0x%X", n, r)
 	}
 
 	status, ok := response.(string)

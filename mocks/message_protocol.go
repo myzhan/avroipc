@@ -1,21 +1,22 @@
 package mocks
 
+import "github.com/stretchr/testify/mock"
+
 type MockProtocol struct {
-	Err                error
-	Message            []byte
-	Response           interface{}
-	ParseResponseBytes []byte
-	ErrorResponseBytes []byte
+	mock.Mock
 }
 
 func (p *MockProtocol) PrepareMessage(method string, datum interface{}) ([]byte, error) {
-	return p.Message, p.Err
+	args := p.Called(method, datum)
+	return args.Get(0).([]byte), args.Error(1)
 }
 
 func (p *MockProtocol) ParseMessage(method string, responseBytes []byte) (interface{}, []byte, error) {
-	return p.Response, p.ParseResponseBytes, p.Err
+	args := p.Called(method, responseBytes)
+	return args.Get(0), args.Get(1).([]byte), args.Error(2)
 }
 
 func (p *MockProtocol) ParseError(method string, responseBytes []byte) ([]byte, error) {
-	return p.ErrorResponseBytes, p.Err
+	args := p.Called(method, responseBytes)
+	return args.Get(0).([]byte), args.Error(1)
 }

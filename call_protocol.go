@@ -3,12 +3,13 @@ package avroipc
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/linkedin/goavro"
 )
 
 type CallProtocol interface {
 	PrepareRequest(method string, datum interface{}) ([]byte, error)
-	ParseResponse(method string, responseBytes []byte) (interface{}, []byte, error)
+	ParseResponse(method string, responseBytes []byte) (interface{}, error)
 }
 
 // The Avro Call format implementation for the Avro RPC protocol.
@@ -78,26 +79,43 @@ func (p *сallProtocol) PrepareRequest(method string, datum interface{}) ([]byte
 	return buf.Bytes(), nil
 }
 
-func (p *сallProtocol) ParseResponse(method string, responseBytes []byte) (interface{}, []byte, error) {
+func (p *сallProtocol) ParseResponse(method string, responseBytes []byte) (interface{}, error) {
 	meta, responseBytes, err := p.metaCodec.NativeFromBinary(responseBytes)
 	if err != nil {
-		return nil, responseBytes, err
+		return nil, err
 	}
 	_ = meta
 
 	flag, responseBytes, err := p.booleanCodec.NativeFromBinary(responseBytes)
 	if err != nil {
-		return nil, responseBytes, err
+		return nil, err
 	}
 	flagBool, ok := flag.(bool)
 	if !ok {
-		return nil, responseBytes, fmt.Errorf("cannot convert error flag to boolean: %v", flag)
+		return nil, fmt.Errorf("cannot convert error flag to boolean: %v", flag)
 	}
 
 	if flagBool {
 		responseBytes, err = p.proto.ParseError(method, responseBytes)
-		return nil, responseBytes, err
+		if err != nil {
+			return nil, err
+		}
+		return nil, p.checkResponseBytes(responseBytes)
 	}
 
-	return p.proto.ParseMessage(method, responseBytes)
+	message, responseBytes, err := p.proto.ParseMessage(method, responseBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, p.checkResponseBytes(responseBytes)
+}
+
+func (p *сallProtocol) checkResponseBytes(b []byte) error {
+	n := len(b)
+	if n > 0 {
+		return fmt.Errorf("response buffer is not empty: len=%d, rest=0x%X", n, b)
+	}
+
+	return nil
 }

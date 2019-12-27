@@ -11,7 +11,7 @@ func (p *MockCallProtocol) PrepareRequest(method string, datum interface{}) ([]b
 	return args.Get(0).([]byte), args.Error(1)
 }
 
-func (p *MockCallProtocol) ParseResponse(method string, responseBytes []byte) (interface{}, []byte, error) {
+func (p *MockCallProtocol) ParseResponse(method string, responseBytes []byte) (interface{}, error) {
 	args := p.Called(method, responseBytes)
-	return args.Get(0), args.Get(1).([]byte), args.Error(2)
+	return args.Get(0), args.Error(1)
 }
