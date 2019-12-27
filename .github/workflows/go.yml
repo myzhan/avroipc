@@ -58,7 +58,7 @@ jobs:
 
     - name: Ckeck format
       run: |
-        ! (gofmt -d `find . -type f -name '*.go'` | grep ^)
+        ! gofmt -d `find . -type f -name '*.go'` | grep ^
 
   coverage:
     name: Coverage
