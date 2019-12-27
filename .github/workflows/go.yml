@@ -57,7 +57,8 @@ jobs:
       run: go get -v -t -d ./...
 
     - name: Ckeck format
-      run: ! (gofmt -d `find . -type f -name '*.go'` | grep ^)
+      run: |
+        ! (gofmt -d `find . -type f -name '*.go'` | grep ^)
 
   coverage:
     name: Coverage
