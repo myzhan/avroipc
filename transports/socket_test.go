@@ -1,4 +1,4 @@
-package avroipc_test
+package transports_test
 
 import (
 	"bufio"
@@ -8,8 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myzhan/avroipc"
 	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc/transports"
 )
 
 func runServer(t *testing.T) (string, func() error) {
@@ -56,7 +57,7 @@ func TestSocket(t *testing.T) {
 	var b []byte
 
 	t.Run("error", func(t *testing.T) {
-		trans, err := avroipc.NewSocket("localhost:12345")
+		trans, err := transports.NewSocket("localhost:12345")
 		require.NoError(t, err)
 
 		err = trans.Open()
@@ -66,7 +67,7 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("flush", func(t *testing.T) {
-		trans, err := avroipc.NewSocket("")
+		trans, err := transports.NewSocket("")
 		require.NoError(t, err)
 
 		err = trans.Flush()
@@ -76,7 +77,7 @@ func TestSocket(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		addr, clean := runServer(t)
 
-		trans, err := avroipc.NewSocket(addr)
+		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
 
 		err = trans.Open()
@@ -101,7 +102,7 @@ func TestSocket(t *testing.T) {
 	t.Run("timeout", func(t *testing.T) {
 		addr, clean := runServer(t)
 
-		trans, err := avroipc.NewSocketTimeout(addr, 1)
+		trans, err := transports.NewSocketTimeout(addr, 1)
 		require.NoError(t, err)
 
 		err = trans.Open()
@@ -113,7 +114,7 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("not open", func(t *testing.T) {
-		trans, err := avroipc.NewSocket("")
+		trans, err := transports.NewSocket("")
 		require.NoError(t, err)
 
 		_, err = trans.Read([]byte{})
@@ -130,7 +131,7 @@ func TestSocket(t *testing.T) {
 	t.Run("already open", func(t *testing.T) {
 		addr, clean := runServer(t)
 
-		trans, err := avroipc.NewSocket(addr)
+		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
 
 		require.NoError(t, trans.Open())
@@ -143,7 +144,7 @@ func TestSocket(t *testing.T) {
 	t.Run("read/write timeout", func(t *testing.T) {
 		addr, clean := runServer(t)
 
-		trans, err := avroipc.NewSocket(addr)
+		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
 
 		err = trans.Open()
@@ -169,7 +170,7 @@ func TestSocket(t *testing.T) {
 	t.Run("close multiple times", func(t *testing.T) {
 		addr, clean := runServer(t)
 
-		trans, err := avroipc.NewSocket(addr)
+		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
 
 		require.NoError(t, trans.Close())
@@ -186,11 +187,11 @@ func TestSocket(t *testing.T) {
 }
 
 func TestNewSocket(t *testing.T) {
-	_, err := avroipc.NewSocket("1:2:3")
+	_, err := transports.NewSocket("1:2:3")
 	require.Error(t, err)
 }
 
 func TestNewSocketTimeout(t *testing.T) {
-	_, err := avroipc.NewSocketTimeout("1:2:3", 1)
+	_, err := transports.NewSocketTimeout("1:2:3", 1)
 	require.Error(t, err)
 }

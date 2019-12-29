@@ -1,4 +1,4 @@
-package avroipc
+package transports
 
 import (
 	"compress/zlib"
@@ -12,7 +12,7 @@ type zlibTransport struct {
 	trans Transport
 }
 
-func NewZlibTransport(trans Transport, level int) (Transport, error) {
+func NewZlib(trans Transport, level int) (Transport, error) {
 	w, err := zlib.NewWriterLevel(trans, level)
 	if err != nil {
 		return nil, err

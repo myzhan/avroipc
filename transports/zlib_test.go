@@ -1,4 +1,4 @@
-package avroipc_test
+package transports_test
 
 import (
 	"bytes"
@@ -7,8 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myzhan/avroipc"
 	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc/transports"
 )
 
 var data = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
@@ -37,7 +38,7 @@ func (m *mockTransport) SetDeadline(time.Time) error {
 func TestZlibTransport_Open(t *testing.T) {
 	m := &mockTransport{}
 
-	trans, err := avroipc.NewZlibTransport(m, 1)
+	trans, err := transports.NewZlib(m, 1)
 	require.NoError(t, err)
 
 	err = trans.Open()
@@ -48,7 +49,7 @@ func TestZlibTransport_Read(t *testing.T) {
 	m := &mockTransport{}
 	m.Buffer.Write(data)
 
-	trans, err := avroipc.NewZlibTransport(m, 1)
+	trans, err := transports.NewZlib(m, 1)
 	require.NoError(t, err)
 
 	b := make([]byte, 4)
@@ -63,7 +64,7 @@ func TestZlibTransport_Write(t *testing.T) {
 	t.Run("short write", func(t *testing.T) {
 		m := &mockTransport{}
 
-		trans, err := avroipc.NewZlibTransport(m, 1)
+		trans, err := transports.NewZlib(m, 1)
 		require.NoError(t, err)
 
 		b := []byte("test")
@@ -76,7 +77,7 @@ func TestZlibTransport_Write(t *testing.T) {
 	t.Run("with close", func(t *testing.T) {
 		m := &mockTransport{}
 
-		trans, err := avroipc.NewZlibTransport(m, 1)
+		trans, err := transports.NewZlib(m, 1)
 		require.NoError(t, err)
 
 		b := []byte("test")
@@ -92,7 +93,7 @@ func TestZlibTransport_Write(t *testing.T) {
 	t.Run("with flush", func(t *testing.T) {
 		m := &mockTransport{}
 
-		trans, err := avroipc.NewZlibTransport(m, 1)
+		trans, err := transports.NewZlib(m, 1)
 		require.NoError(t, err)
 
 		b := []byte("test")
@@ -114,7 +115,7 @@ func TestZlibTransport_Write(t *testing.T) {
 		d := time.Now()
 		m := &mockTransport{}
 
-		trans, err := avroipc.NewZlibTransport(m, 1)
+		trans, err := transports.NewZlib(m, 1)
 		require.NoError(t, err)
 
 		err = trans.SetDeadline(d)
