@@ -10,46 +10,24 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/myzhan/avroipc/internal"
 	"github.com/myzhan/avroipc/transports"
 )
 
-func runServer(t *testing.T) (string, func() error) {
-	ln, err := net.Listen("tcp4", "127.0.0.1:0")
-	require.NoError(t, err)
-
-	accept := func() error {
-		conn, err := ln.Accept()
-		if err != nil {
-			return nil
+func handler(conn net.Conn) error {
+	s := bufio.NewScanner(conn)
+	for s.Scan() {
+		switch s.Text() {
+		case "ping":
+			_, _ = conn.Write([]byte("pong"))
+		case "sleep":
+			time.Sleep(2 * time.Second)
+			_, _ = conn.Write([]byte("sleep"))
+		default:
+			return fmt.Errorf("unexpected action: %s", s.Text())
 		}
-		defer conn.Close()
-
-		s := bufio.NewScanner(conn)
-		for s.Scan() {
-			switch s.Text() {
-			case "ping":
-				_, _ = conn.Write([]byte("pong"))
-			case "sleep":
-				time.Sleep(2 * time.Second)
-				_, _ = conn.Write([]byte("sleep"))
-			default:
-				return fmt.Errorf("unexpected action: %s", s.Text())
-			}
-		}
-		if s.Err() != nil {
-			return err
-		}
-
-		return nil
 	}
-
-	go func() {
-		for {
-			require.NoError(t, accept())
-		}
-	}()
-
-	return ln.Addr().String(), ln.Close
+	return s.Err()
 }
 
 func TestSocket(t *testing.T) {
@@ -75,7 +53,7 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
-		addr, clean := runServer(t)
+		addr, clean := internal.RunServer(t, handler)
 
 		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
@@ -100,7 +78,7 @@ func TestSocket(t *testing.T) {
 
 	// TODO Use more robust method to test timeout errors
 	t.Run("timeout", func(t *testing.T) {
-		addr, clean := runServer(t)
+		addr, clean := internal.RunServer(t, handler)
 
 		trans, err := transports.NewSocketTimeout(addr, 1)
 		require.NoError(t, err)
@@ -129,7 +107,7 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("already open", func(t *testing.T) {
-		addr, clean := runServer(t)
+		addr, clean := internal.RunServer(t, handler)
 
 		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
@@ -142,7 +120,7 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("read/write timeout", func(t *testing.T) {
-		addr, clean := runServer(t)
+		addr, clean := internal.RunServer(t, handler)
 
 		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
@@ -168,7 +146,7 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("close multiple times", func(t *testing.T) {
-		addr, clean := runServer(t)
+		addr, clean := internal.RunServer(t, handler)
 
 		trans, err := transports.NewSocket(addr)
 		require.NoError(t, err)
