@@ -37,7 +37,7 @@ func TestHandshakeProtocol_PrepareRequest(t *testing.T) {
 			0x0, 0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		actual, err := p.PrepareRequest()
@@ -59,7 +59,7 @@ func TestHandshakeProtocol_PrepareRequest(t *testing.T) {
 			0x0, 0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		h := p.(*handshakeProtocol)
@@ -79,7 +79,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x7,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -94,7 +94,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -115,7 +115,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -135,7 +135,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -155,7 +155,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		h := p.(*handshakeProtocol)
@@ -179,7 +179,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -199,7 +199,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshakeProtocol()
+		p, err := NewHandshake()
 		require.NoError(t, err)
 
 		h := p.(*handshakeProtocol)

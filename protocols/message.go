@@ -28,7 +28,7 @@ type AvroSourceProtocol struct {
 	messages map[string]message
 }
 
-func NewAvroSourceProtocol() (MessageProtocol, error) {
+func NewAvroSource() (MessageProtocol, error) {
 	p := &AvroSourceProtocol{
 		messages: make(map[string]message),
 	}

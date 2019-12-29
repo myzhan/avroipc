@@ -25,7 +25,7 @@ type сallProtocol struct {
 	booleanCodec *goavro.Codec
 }
 
-func NewCallProtocol(proto MessageProtocol) (CallProtocol, error) {
+func NewCall(proto MessageProtocol) (CallProtocol, error) {
 	p := &сallProtocol{
 		proto: proto,
 	}
