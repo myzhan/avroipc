@@ -1,18 +1,19 @@
-package avroipc_test
+package protocols_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/myzhan/avroipc"
 	"github.com/myzhan/avroipc/mocks"
 	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc/protocols"
 )
 
-func prepareCallProtocol(t *testing.T) (avroipc.CallProtocol, *mocks.MockProtocol) {
+func prepareCallProtocol(t *testing.T) (protocols.CallProtocol, *mocks.MockProtocol) {
 	m := &mocks.MockProtocol{}
 
-	p, err := avroipc.NewCallProtocol(m)
+	p, err := protocols.NewCallProtocol(m)
 	require.NoError(t, err)
 
 	return p, m

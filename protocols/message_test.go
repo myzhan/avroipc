@@ -1,9 +1,11 @@
-package avroipc_test
+package protocols_test
 
 import (
-	"github.com/myzhan/avroipc"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc/protocols"
 )
 
 func makeDatum(body string) interface{} {
@@ -22,7 +24,7 @@ func makeArrayDatum(bodies ...string) interface{} {
 }
 
 func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
-	p, err := avroipc.NewAvroSourceProtocol()
+	p, err := protocols.NewAvroSourceProtocol()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
@@ -65,7 +67,7 @@ func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
 }
 
 func TestAvroSourceProtocol_ParseMessage(t *testing.T) {
-	p, err := avroipc.NewAvroSourceProtocol()
+	p, err := protocols.NewAvroSourceProtocol()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
@@ -95,7 +97,7 @@ func TestAvroSourceProtocol_ParseMessage(t *testing.T) {
 }
 
 func TestAvroSourceProtocol_ParseError(t *testing.T) {
-	p, err := avroipc.NewAvroSourceProtocol()
+	p, err := protocols.NewAvroSourceProtocol()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
