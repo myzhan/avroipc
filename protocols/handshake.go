@@ -1,9 +1,10 @@
-package avroipc
+package protocols
 
 import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
+
 	"github.com/linkedin/goavro"
 	"github.com/sirupsen/logrus"
 )

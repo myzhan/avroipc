@@ -1,7 +1,8 @@
-package avroipc
+package protocols
 
 import (
 	"fmt"
+
 	"github.com/linkedin/goavro"
 )
 

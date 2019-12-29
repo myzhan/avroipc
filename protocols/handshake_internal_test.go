@@ -1,8 +1,9 @@
-package avroipc
+package protocols
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_getMD5(t *testing.T) {

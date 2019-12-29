@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/myzhan/avroipc/protocols"
 	"github.com/myzhan/avroipc/transports"
 )
 
@@ -19,8 +20,8 @@ type client struct {
 
 	transport         transports.Transport
 	framingLayer      FramingLayer
-	callProtocol      CallProtocol
-	handshakeProtocol HandshakeProtocol
+	callProtocol      protocols.CallProtocol
+	handshakeProtocol protocols.HandshakeProtocol
 }
 
 // NewClient creates an avro Client, and connect to addr immediately
@@ -43,7 +44,7 @@ func NewClient(addr string, timeout, sendTimeout time.Duration, bufferSize, comp
 		return nil, err
 	}
 
-	proto, err := NewAvroSourceProtocol()
+	proto, err := protocols.NewAvroSourceProtocol()
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func NewClient(addr string, timeout, sendTimeout time.Duration, bufferSize, comp
 	return NewClientWithTrans(trans, proto, sendTimeout)
 }
 
-func NewClientWithTrans(trans transports.Transport, proto MessageProtocol, sendTimeout time.Duration) (Client, error) {
+func NewClientWithTrans(trans transports.Transport, proto protocols.MessageProtocol, sendTimeout time.Duration) (Client, error) {
 	var err error
 	c := &client{}
 	c.sendTimeout = sendTimeout
@@ -59,12 +60,12 @@ func NewClientWithTrans(trans transports.Transport, proto MessageProtocol, sendT
 	c.transport = trans
 	c.framingLayer = NewFramingLayer(trans)
 
-	c.callProtocol, err = NewCallProtocol(proto)
+	c.callProtocol, err = protocols.NewCallProtocol(proto)
 	if err != nil {
 		return nil, err
 	}
 
-	c.handshakeProtocol, err = NewHandshakeProtocol()
+	c.handshakeProtocol, err = protocols.NewHandshakeProtocol()
 	if err != nil {
 		return nil, err
 	}

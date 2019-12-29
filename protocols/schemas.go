@@ -1,4 +1,4 @@
-package avroipc
+package protocols
 
 const errorsSchema = `
 {
