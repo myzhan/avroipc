@@ -1,4 +1,4 @@
-package avroipc
+package layers
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ type framingLayer struct {
 	serial uint32
 }
 
-func NewFramingLayer(trans transports.Transport) FramingLayer {
+func NewFraming(trans transports.Transport) FramingLayer {
 	return &framingLayer{
 		trans: trans,
 	}

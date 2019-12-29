@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/myzhan/avroipc/layers"
 	"github.com/myzhan/avroipc/protocols"
 	"github.com/myzhan/avroipc/transports"
 )
@@ -19,7 +20,7 @@ type client struct {
 	sendTimeout time.Duration
 
 	transport         transports.Transport
-	framingLayer      FramingLayer
+	framingLayer      layers.FramingLayer
 	callProtocol      protocols.CallProtocol
 	handshakeProtocol protocols.HandshakeProtocol
 }
@@ -44,7 +45,7 @@ func NewClient(addr string, timeout, sendTimeout time.Duration, bufferSize, comp
 		return nil, err
 	}
 
-	proto, err := protocols.NewAvroSourceProtocol()
+	proto, err := protocols.NewAvroSource()
 	if err != nil {
 		return nil, err
 	}
@@ -58,14 +59,14 @@ func NewClientWithTrans(trans transports.Transport, proto protocols.MessageProto
 	c.sendTimeout = sendTimeout
 
 	c.transport = trans
-	c.framingLayer = NewFramingLayer(trans)
+	c.framingLayer = layers.NewFraming(trans)
 
-	c.callProtocol, err = protocols.NewCallProtocol(proto)
+	c.callProtocol, err = protocols.NewCall(proto)
 	if err != nil {
 		return nil, err
 	}
 
-	c.handshakeProtocol, err = protocols.NewHandshakeProtocol()
+	c.handshakeProtocol, err = protocols.NewHandshake()
 	if err != nil {
 		return nil, err
 	}

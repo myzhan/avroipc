@@ -24,7 +24,7 @@ func makeArrayDatum(bodies ...string) interface{} {
 }
 
 func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
-	p, err := protocols.NewAvroSourceProtocol()
+	p, err := protocols.NewAvroSource()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
@@ -67,7 +67,7 @@ func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
 }
 
 func TestAvroSourceProtocol_ParseMessage(t *testing.T) {
-	p, err := protocols.NewAvroSourceProtocol()
+	p, err := protocols.NewAvroSource()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
@@ -97,7 +97,7 @@ func TestAvroSourceProtocol_ParseMessage(t *testing.T) {
 }
 
 func TestAvroSourceProtocol_ParseError(t *testing.T) {
-	p, err := protocols.NewAvroSourceProtocol()
+	p, err := protocols.NewAvroSource()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 func prepareCallProtocol(t *testing.T) (protocols.CallProtocol, *mocks.MockProtocol) {
 	m := &mocks.MockProtocol{}
 
-	p, err := protocols.NewCallProtocol(m)
+	p, err := protocols.NewCall(m)
 	require.NoError(t, err)
 
 	return p, m

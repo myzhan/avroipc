@@ -1,19 +1,20 @@
-package avroipc_test
+package layers_test
 
 import (
 	"bytes"
 	"fmt"
 	"testing"
 
-	"github.com/myzhan/avroipc"
 	"github.com/myzhan/avroipc/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc/layers"
 )
 
-func prepareFramingLayer() (avroipc.FramingLayer, *mocks.MockTransport) {
+func prepareFramingLayer() (layers.FramingLayer, *mocks.MockTransport) {
 	m := &mocks.MockTransport{}
-	f := avroipc.NewFramingLayer(m)
+	f := layers.NewFraming(m)
 
 	return f, m
 }

@@ -37,7 +37,7 @@ type handshakeProtocol struct {
 	handshakeResponseCodec *goavro.Codec
 }
 
-func NewHandshakeProtocol() (HandshakeProtocol, error) {
+func NewHandshake() (HandshakeProtocol, error) {
 	p := &handshakeProtocol{
 		serverHash:     getMD5(messageProtocol),
 		clientHash:     getMD5(messageProtocol),
