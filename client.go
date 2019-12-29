@@ -3,6 +3,8 @@ package avroipc
 import (
 	"fmt"
 	"time"
+
+	"github.com/myzhan/avroipc/transports"
 )
 
 // Client acts as an avro client
@@ -15,7 +17,7 @@ type Client interface {
 type client struct {
 	sendTimeout time.Duration
 
-	transport         Transport
+	transport         transports.Transport
 	framingLayer      FramingLayer
 	callProtocol      CallProtocol
 	handshakeProtocol HandshakeProtocol
@@ -23,15 +25,15 @@ type client struct {
 
 // NewClient creates an avro Client, and connect to addr immediately
 func NewClient(addr string, timeout, sendTimeout time.Duration, bufferSize, compressionLevel int) (Client, error) {
-	trans, err := NewSocketTimeout(addr, timeout)
+	trans, err := transports.NewSocketTimeout(addr, timeout)
 	if err != nil {
 		return nil, err
 	}
 	if bufferSize > 0 {
-		trans = NewBufferedTransport(trans, bufferSize)
+		trans = transports.NewBuffered(trans, bufferSize)
 	}
 	if compressionLevel > 0 {
-		trans, err = NewZlibTransport(trans, compressionLevel)
+		trans, err = transports.NewZlib(trans, compressionLevel)
 		if err != nil {
 			return nil, err
 		}
@@ -49,7 +51,7 @@ func NewClient(addr string, timeout, sendTimeout time.Duration, bufferSize, comp
 	return NewClientWithTrans(trans, proto, sendTimeout)
 }
 
-func NewClientWithTrans(trans Transport, proto MessageProtocol, sendTimeout time.Duration) (Client, error) {
+func NewClientWithTrans(trans transports.Transport, proto MessageProtocol, sendTimeout time.Duration) (Client, error) {
 	var err error
 	c := &client{}
 	c.sendTimeout = sendTimeout

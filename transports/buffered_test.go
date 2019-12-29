@@ -1,19 +1,20 @@
-package avroipc_test
+package transports_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/myzhan/avroipc"
 	"github.com/myzhan/avroipc/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc/transports"
 )
 
-func prepareBufferedTransport() (avroipc.Transport, *mocks.MockTransport) {
+func prepareBufferedTransport() (transports.Transport, *mocks.MockTransport) {
 	m := &mocks.MockTransport{}
-	b := avroipc.NewBufferedTransport(m, 8)
+	b := transports.NewBuffered(m, 8)
 
 	return b, m
 }

@@ -1,4 +1,4 @@
-package avroipc
+package transports
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ type bufferedTransport struct {
 	trans Transport
 }
 
-func NewBufferedTransport(trans Transport, bufferSize int) Transport {
+func NewBuffered(trans Transport, bufferSize int) Transport {
 	return &bufferedTransport{
 		r:     bufio.NewReaderSize(trans, bufferSize),
 		w:     bufio.NewWriterSize(trans, bufferSize),

@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+
+	"github.com/myzhan/avroipc/transports"
 )
 
 const maxFrameSize = 10 * 1024
@@ -19,12 +21,12 @@ type FramingLayer interface {
 type framingLayer struct {
 	rb bytes.Buffer
 
-	trans Transport
+	trans transports.Transport
 
 	serial uint32
 }
 
-func NewFramingLayer(trans Transport) FramingLayer {
+func NewFramingLayer(trans transports.Transport) FramingLayer {
 	return &framingLayer{
 		trans: trans,
 	}
