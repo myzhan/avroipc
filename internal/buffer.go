@@ -1,6 +1,8 @@
 package internal
 
-import "io"
+import (
+	"io"
+)
 
 type Buffer struct {
 	buf []byte
@@ -18,15 +20,13 @@ func (b *Buffer) Reset() {
 	b.buf = b.buf[:0]
 }
 
-func (b *Buffer) ReadFrom(r io.Reader) (int, error) {
-	x := 0
+func (b *Buffer) ReadFrom(r io.Reader) error {
 	buf := make([]byte, 1024)
 
 	for {
 		n, err := r.Read(buf)
-		x += n
 		if err != nil {
-			return x, err
+			return err
 		}
 		b.buf = append(b.buf, buf[:n]...)
 		if n < len(buf) {
@@ -34,24 +34,5 @@ func (b *Buffer) ReadFrom(r io.Reader) (int, error) {
 		}
 	}
 
-	return x, nil
-}
-
-func (b *Buffer) ReadUntil(r io.Reader) (int, error) {
-	x := 0
-	buf := make([]byte, 1024)
-
-	for {
-		n, err := r.Read(buf)
-		x += n
-		if err != nil {
-			return x, err
-		}
-		b.buf = append(b.buf, buf[:n]...)
-		if n < len(buf) {
-			break
-		}
-	}
-
-	return x, nil
+	return nil
 }
