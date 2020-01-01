@@ -1,9 +1,10 @@
 package internal
 
 import (
-	"github.com/stretchr/testify/require"
 	"net"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func RunServer(t *testing.T, handler func(net.Conn) error) (string, func() error) {
