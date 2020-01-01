@@ -61,7 +61,9 @@ func (s *socket) Read(buf []byte) (int, error) {
 		return 0, fmt.Errorf("not open")
 	}
 
-	return s.conn.Read(buf)
+	n, err := s.conn.Read(buf)
+	fmt.Printf("R[%04d]: %X\n", n, buf[:n])
+	return n, err
 }
 
 func (s *socket) Write(buf []byte) (int, error) {
@@ -69,7 +71,9 @@ func (s *socket) Write(buf []byte) (int, error) {
 		return 0, fmt.Errorf("not open")
 	}
 
-	return s.conn.Write(buf)
+	n, err := s.conn.Write(buf)
+	fmt.Printf("W[%04d]: %X\n", n, buf)
+	return n, err
 }
 
 func (s *socket) Flush() error {
