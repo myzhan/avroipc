@@ -19,10 +19,6 @@ type mockTransport struct {
 	bytes.Buffer
 }
 
-func (m *mockTransport) Open() error {
-	return errors.New("test error")
-}
-
 func (m *mockTransport) Close() error {
 	return nil
 }
@@ -35,22 +31,18 @@ func (m *mockTransport) SetDeadline(time.Time) error {
 	return errors.New("test error")
 }
 
-func TestZlibTransport_Open(t *testing.T) {
-	m := &mockTransport{}
-
-	trans, err := transports.NewZlib(m, 1)
-	require.NoError(t, err)
-
-	err = trans.Open()
-	require.EqualError(t, err, "test error")
-}
-
-func TestZlibTransport_Read(t *testing.T) {
+func prepareZlibTransport(t *testing.T, data []byte) (transports.Transport, *mockTransport) {
 	m := &mockTransport{}
 	m.Buffer.Write(data)
 
 	trans, err := transports.NewZlib(m, 1)
 	require.NoError(t, err)
+
+	return trans, m
+}
+
+func TestZlibTransport_Read(t *testing.T) {
+	trans, _ := prepareZlibTransport(t, data)
 
 	b := make([]byte, 4)
 	n, err := trans.Read(b)
@@ -62,10 +54,7 @@ func TestZlibTransport_Read(t *testing.T) {
 
 func TestZlibTransport_Write(t *testing.T) {
 	t.Run("short write", func(t *testing.T) {
-		m := &mockTransport{}
-
-		trans, err := transports.NewZlib(m, 1)
-		require.NoError(t, err)
+		trans, m := prepareZlibTransport(t, []byte{})
 
 		b := []byte("test")
 		n, err := trans.Write(b)
@@ -75,10 +64,7 @@ func TestZlibTransport_Write(t *testing.T) {
 		require.Equal(t, data[:2], m.Bytes())
 	})
 	t.Run("with close", func(t *testing.T) {
-		m := &mockTransport{}
-
-		trans, err := transports.NewZlib(m, 1)
-		require.NoError(t, err)
+		trans, m := prepareZlibTransport(t, []byte{})
 
 		b := []byte("test")
 		n, err := trans.Write(b)
@@ -91,10 +77,7 @@ func TestZlibTransport_Write(t *testing.T) {
 		require.Equal(t, data, m.Bytes())
 	})
 	t.Run("with flush", func(t *testing.T) {
-		m := &mockTransport{}
-
-		trans, err := transports.NewZlib(m, 1)
-		require.NoError(t, err)
+		trans, m := prepareZlibTransport(t, []byte{})
 
 		b := []byte("test")
 		n, err := trans.Write(b)
@@ -113,12 +96,9 @@ func TestZlibTransport_Write(t *testing.T) {
 	})
 	t.Run("set deadline", func(t *testing.T) {
 		d := time.Now()
-		m := &mockTransport{}
+		trans, _ := prepareZlibTransport(t, []byte{})
 
-		trans, err := transports.NewZlib(m, 1)
-		require.NoError(t, err)
-
-		err = trans.SetDeadline(d)
+		err := trans.SetDeadline(d)
 		require.EqualError(t, err, "test error")
 	})
 }

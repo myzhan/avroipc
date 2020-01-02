@@ -19,28 +19,6 @@ func prepareBufferedTransport() (transports.Transport, *mocks.MockTransport) {
 	return b, m
 }
 
-func TestBufferedTransport_Open(t *testing.T) {
-	t.Run("succeed", func(t *testing.T) {
-		b, m := prepareBufferedTransport()
-
-		m.On("Open").Return(nil).Once()
-
-		err := b.Open()
-		require.NoError(t, err)
-		m.AssertExpectations(t)
-	})
-
-	t.Run("failed", func(t *testing.T) {
-		b, m := prepareBufferedTransport()
-
-		m.On("Open").Return(fmt.Errorf("test error")).Once()
-
-		err := b.Open()
-		require.EqualError(t, err, "test error")
-		m.AssertExpectations(t)
-	})
-}
-
 func TestBufferedTransport_Close(t *testing.T) {
 	t.Run("succeed", func(t *testing.T) {
 		b, m := prepareBufferedTransport()

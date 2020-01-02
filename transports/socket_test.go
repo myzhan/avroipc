@@ -3,7 +3,6 @@ package transports_test
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"net"
 	"testing"
 	"time"
@@ -30,114 +29,68 @@ func handler(conn net.Conn) error {
 	return s.Err()
 }
 
+func prepareSocket(t *testing.T) (transports.Transport, func() error) {
+	addr, clean := internal.RunServer(t, handler)
+
+	trans, err := transports.NewSocket(addr, time.Second)
+	require.NoError(t, err)
+
+	return trans, clean
+}
+
 func TestSocket(t *testing.T) {
-	var n int
-	var b []byte
-
-	t.Run("error", func(t *testing.T) {
-		trans, err := transports.NewSocket("localhost:12345")
-		require.NoError(t, err)
-
-		err = trans.Open()
-		require.Error(t, err)
-
-		require.NoError(t, trans.Close())
-	})
-
-	t.Run("flush", func(t *testing.T) {
-		trans, err := transports.NewSocket("")
-		require.NoError(t, err)
-
-		err = trans.Flush()
-		require.NoError(t, err)
-	})
-
 	t.Run("success", func(t *testing.T) {
-		addr, clean := internal.RunServer(t, handler)
+		trans, clean := prepareSocket(t)
 
-		trans, err := transports.NewSocket(addr)
+		err := trans.Flush()
 		require.NoError(t, err)
 
-		err = trans.Open()
+		_, err = trans.Write([]byte("ping\n"))
 		require.NoError(t, err)
 
-		b = []byte("ping\n")
-		n, err = trans.Write(b)
+		b := &internal.Buffer{}
+		err = b.ReadFrom(trans)
 		require.NoError(t, err)
-		require.Equal(t, 5, n)
-
-		b = make([]byte, 4)
-		n, err = io.ReadFull(trans, b)
-		require.NoError(t, err)
-		require.Equal(t, 4, n)
-		require.Equal(t, []byte("pong"), b[:n])
+		require.Equal(t, []byte("pong"), b.Bytes())
 
 		require.NoError(t, clean())
 		require.NoError(t, trans.Close())
 	})
 
-	// TODO Use more robust method to test timeout errors
+	// TODO Use a more robust method to test timeout errors
 	t.Run("timeout", func(t *testing.T) {
 		addr, clean := internal.RunServer(t, handler)
 
-		trans, err := transports.NewSocketTimeout(addr, 1)
-		require.NoError(t, err)
-
-		err = trans.Open()
+		_, err := transports.NewSocket(addr, 1)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "i/o timeout")
 
 		require.NoError(t, clean())
-		require.NoError(t, trans.Close())
 	})
 
-	t.Run("not open", func(t *testing.T) {
-		trans, err := transports.NewSocket("")
-		require.NoError(t, err)
-
-		_, err = trans.Read([]byte{})
+	t.Run("bad address", func(t *testing.T) {
+		_, err := transports.NewSocket("1:2:3", time.Second)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "not open")
-
-		_, err = trans.Write([]byte{})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "not open")
-
-		require.NoError(t, trans.Close())
+		require.Contains(t, err.Error(), "too many colons in address")
 	})
 
-	t.Run("already open", func(t *testing.T) {
-		addr, clean := internal.RunServer(t, handler)
-
-		trans, err := transports.NewSocket(addr)
-		require.NoError(t, err)
-
-		require.NoError(t, trans.Open())
-		require.Error(t, trans.Open())
-
-		require.NoError(t, clean())
-		require.NoError(t, trans.Close())
+	t.Run("connection refused", func(t *testing.T) {
+		_, err := transports.NewSocket("localhost:12345", time.Second)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "connect: connection refused")
 	})
 
 	t.Run("read/write timeout", func(t *testing.T) {
-		addr, clean := internal.RunServer(t, handler)
+		trans, clean := prepareSocket(t)
 
-		trans, err := transports.NewSocket(addr)
+		err := trans.SetDeadline(time.Now().Add(time.Second))
 		require.NoError(t, err)
 
-		err = trans.Open()
+		_, err = trans.Write([]byte("sleep\n"))
 		require.NoError(t, err)
 
-		err = trans.SetDeadline(time.Now().Add(time.Second))
-		require.NoError(t, err)
-
-		b = []byte("sleep\n")
-		n, err = trans.Write(b)
-		require.NoError(t, err)
-		require.Equal(t, 6, n)
-
-		b = make([]byte, 5)
-		n, err = io.ReadFull(trans, b)
+		b := &internal.Buffer{}
+		err = b.ReadFrom(trans)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "i/o timeout")
 
@@ -146,30 +99,15 @@ func TestSocket(t *testing.T) {
 	})
 
 	t.Run("close multiple times", func(t *testing.T) {
-		addr, clean := internal.RunServer(t, handler)
+		trans, clean := prepareSocket(t)
 
-		trans, err := transports.NewSocket(addr)
+		err := trans.Close()
 		require.NoError(t, err)
 
-		require.NoError(t, trans.Close())
-		require.NoError(t, trans.Close())
-
-		err = trans.Open()
-		require.NoError(t, err)
-
-		require.NoError(t, trans.Close())
-		require.NoError(t, trans.Close())
+		err = trans.Close()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "use of closed network connection")
 
 		require.NoError(t, clean())
 	})
-}
-
-func TestNewSocket(t *testing.T) {
-	_, err := transports.NewSocket("1:2:3")
-	require.Error(t, err)
-}
-
-func TestNewSocketTimeout(t *testing.T) {
-	_, err := transports.NewSocketTimeout("1:2:3", 1)
-	require.Error(t, err)
 }
