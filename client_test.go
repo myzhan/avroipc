@@ -19,7 +19,7 @@ type pair struct {
 	resp []byte
 }
 
-func TestClient_Append(t *testing.T) {
+func TestClient(t *testing.T) {
 	data := map[string]struct {
 		pairs []pair
 
@@ -27,6 +27,8 @@ func TestClient_Append(t *testing.T) {
 		buffer int
 	}{
 		"plain data": {
+			level:  0,
+			buffer: 0,
 			pairs: []pair{{
 				// Handshake request
 				req: []byte{
@@ -100,10 +102,10 @@ func TestClient_Append(t *testing.T) {
 					0x00,
 				},
 			}},
-			level:  0,
-			buffer: 0,
 		},
 		"compressed data": {
+			level:  6,
+			buffer: 1024,
 			pairs: []pair{{
 				// Handshake request
 				req: []byte{
@@ -131,8 +133,6 @@ func TestClient_Append(t *testing.T) {
 					0x00, 0x00, 0xFF, 0xFF,
 				},
 			}},
-			level:  6,
-			buffer: 1024,
 		},
 	}
 	for n, d := range data {
@@ -179,4 +179,21 @@ func TestClient_Append(t *testing.T) {
 			require.NoError(t, clean())
 		})
 	}
+
+	t.Run("bad address", func(t *testing.T) {
+		_, err := avroipc.NewClient("1:2:3")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "too many colons in address")
+	})
+
+	t.Run("bad compression level", func(t *testing.T) {
+		addr, clean := internal.RunServer(t, func(conn net.Conn) error {
+			return nil
+		})
+		_, err := avroipc.NewClientWithConfig(addr, avroipc.NewConfig().WithCompressionLevel(10))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "zlib: invalid compression level: 10")
+
+		require.NoError(t, clean())
+	})
 }

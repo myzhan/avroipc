@@ -19,6 +19,12 @@ func prepareCallProtocol(t *testing.T) (protocols.CallProtocol, *mocks.MockProto
 	return p, m
 }
 
+// Test successful schema compilation
+func TestNewCall(t *testing.T) {
+	_, err := protocols.NewCall(nil)
+	require.NoError(t, err)
+}
+
 func TestCallProtocol_PrepareRequest(t *testing.T) {
 	datum := []byte{0xA, 0xB, 0xC}
 	message := []byte{0xD, 0xE, 0xF}

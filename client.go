@@ -47,30 +47,17 @@ func NewClientWithConfig(addr string, config *Config) (Client, error) {
 		return nil, err
 	}
 
-	err = c.initProtocols()
-	if err != nil {
-		return nil, err
-	}
-
+	c.initProtocols()
 	return c, c.handshake()
 }
 
-func (c *client) initProtocols() error {
-	proto, err := protocols.NewAvroSource()
-	if err != nil {
-		return err
-	}
-
+func (c *client) initProtocols() {
+	// All errors here are only related to compilations of Avro schemas
+	// and are not possible at runtime because they will be caught by unit tests.
+	proto, _ := protocols.NewAvroSource()
 	c.framingLayer = layers.NewFraming(c.transport)
-	c.callProtocol, err = protocols.NewCall(proto)
-	if err != nil {
-		return err
-	}
-	c.handshakeProtocol, err = protocols.NewHandshake()
-	if err != nil {
-		return err
-	}
-	return nil
+	c.callProtocol, _ = protocols.NewCall(proto)
+	c.handshakeProtocol, _ = protocols.NewHandshake()
 }
 
 func (c *client) initTransports(addr string, config *Config) (err error) {

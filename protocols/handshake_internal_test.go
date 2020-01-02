@@ -22,6 +22,12 @@ func Test_getMD5(t *testing.T) {
 	})
 }
 
+// Test successful schema compilation
+func TestNewHandshake(t *testing.T) {
+	_, err := NewHandshake()
+	require.NoError(t, err)
+}
+
 func TestHandshakeProtocol_PrepareRequest(t *testing.T) {
 	t.Run("without client protocol", func(t *testing.T) {
 		expected := []byte{

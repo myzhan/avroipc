@@ -23,6 +23,12 @@ func makeArrayDatum(bodies ...string) interface{} {
 	return result
 }
 
+// Test successful schema compilation
+func TestNewAvroSource(t *testing.T) {
+	_, err := protocols.NewAvroSource()
+	require.NoError(t, err)
+}
+
 func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
 	p, err := protocols.NewAvroSource()
 	require.NoError(t, err)
