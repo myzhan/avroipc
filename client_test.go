@@ -160,7 +160,12 @@ func TestClient_Append(t *testing.T) {
 				}
 			})
 
-			client, err := avroipc.NewClient(addr, 1*time.Second, 3*time.Second, d.buffer, d.level)
+			config := avroipc.NewConfig()
+			config.WithTimeout(time.Second)
+			config.WithSendTimeout(3 * time.Second)
+			config.WithBufferSize(d.buffer)
+			config.WithCompressionLevel(d.level)
+			client, err := avroipc.NewClientWithConfig(addr, config)
 			require.NoError(t, err)
 
 			event := &avroipc.Event{
