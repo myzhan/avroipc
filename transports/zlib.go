@@ -24,10 +24,6 @@ func NewZlib(trans Transport, level int) (Transport, error) {
 	}, nil
 }
 
-func (t *zlibTransport) Open() error {
-	return t.trans.Open()
-}
-
 func (t *zlibTransport) Close() error {
 	if t.r != nil {
 		err := t.r.Close()

@@ -74,7 +74,7 @@ func (c *client) initProtocols() error {
 }
 
 func (c *client) initTransports(addr string, config *Config) (err error) {
-	c.transport, err = transports.NewSocketTimeout(addr, config.Timeout)
+	c.transport, err = transports.NewSocket(addr, config.Timeout)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (c *client) initTransports(addr string, config *Config) (err error) {
 		}
 	}
 
-	return c.transport.Open()
+	return
 }
 
 func (c *client) send(request []byte) ([]byte, error) {
