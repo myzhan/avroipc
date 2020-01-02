@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClient(t *testing.T) {
+func TestConfig(t *testing.T) {
 	c := avroipc.NewConfig()
 	c.WithTimeout(1)
 	c.WithSendTimeout(2)
