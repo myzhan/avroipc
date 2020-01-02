@@ -17,22 +17,20 @@ func TestSend(t *testing.T) {
 	if addr == "" {
 		t.Skip("The FLUME_SERVER_ADDRESS environment variable is not set")
 	}
+	config := NewConfig()
 
 	level := os.Getenv("FLUME_COMPRESSION_LEVEL")
-	levelInt := 0
 	if level != "" {
-		var err error
-		levelInt, err = strconv.Atoi(level)
+		l, err := strconv.Atoi(level)
 		require.NoError(t, err)
+		config.WithCompressionLevel(l)
 	}
 
-	bufferSize := 8
+	config.WithBufferSize(0)
+	config.WithTimeout(1 * time.Second)
+	config.WithSendTimeout(3 * time.Second)
 
-	timeout := time.Duration(0)
-	sendTimeout := time.Duration(0)
-
-	// flume avro instance address
-	client, err := NewClient(addr, timeout, sendTimeout, bufferSize, levelInt)
+	client, err := NewClientWithConfig(addr, config)
 	require.NoError(t, err)
 
 	event := &Event{

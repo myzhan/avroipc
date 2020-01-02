@@ -21,8 +21,8 @@ import (
 )
 
 func main() {
-    // flume avro instance address
-    client, err := avroipc.NewClient("localhost:20200", 0, 0, 1024, 6)
+    // Create a new client with default parameters
+    client, err := avroipc.NewClient("localhost:20200")
     if err != nil {
         log.Fatal(err)
     }
@@ -41,6 +41,30 @@ func main() {
     if status != "OK" {
         log.Fatalf("Bad status: %s", status)
     }
+}
+```
+
+To specify particular parameters of the client it is possible to use the config builder:
+```go
+package main
+import (
+    "log"
+    "time"
+
+    "github.com/myzhan/avroipc"
+)
+
+func main() {
+    config := avroipc.NewConfig()
+    config.WithTimeout(3*time.Second)
+
+    client, err := avroipc.NewClientWithConfig("localhost:20200", config)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // Use the client as before
+    _ = client
 }
 ```
 
