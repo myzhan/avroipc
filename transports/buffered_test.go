@@ -20,7 +20,7 @@ func prepareBufferedTransport() (transports.Transport, *mocks.MockTransport) {
 }
 
 func TestBufferedTransport_Close(t *testing.T) {
-	t.Run("succeed", func(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
 		b, m := prepareBufferedTransport()
 
 		m.On("Close").Return(nil).Once()
@@ -37,6 +37,21 @@ func TestBufferedTransport_Close(t *testing.T) {
 
 		err := b.Close()
 		require.EqualError(t, err, "test error")
+		m.AssertExpectations(t)
+	})
+
+	t.Run("flush data in a buffer", func(t *testing.T) {
+		d := []byte{0x00, 0x00}
+		b, m := prepareBufferedTransport()
+
+		m.On("Write", d).Return(len(d), nil).Once()
+		m.On("Close").Return(nil).Once()
+
+		_, err := b.Write(d)
+		require.NoError(t, err)
+		err = b.Close()
+		require.NoError(t, err)
+
 		m.AssertExpectations(t)
 	})
 }
