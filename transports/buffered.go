@@ -19,7 +19,11 @@ func NewBuffered(trans Transport, bufferSize int) Transport {
 	}
 }
 
-func (p *bufferedTransport) Close() (err error) {
+func (p *bufferedTransport) Close() error {
+	err := p.w.Flush()
+	if err != nil {
+		return err
+	}
 	return p.trans.Close()
 }
 
