@@ -119,7 +119,25 @@ func (c *client) handshake() error {
 	return nil
 }
 
-func (c *client) sendMessage(method string, datum interface{}) (string, error) {
+func (c *client) applyDeadline() error {
+	if c.sendTimeout > 0 {
+		d := time.Now().Add(c.sendTimeout)
+		return c.transport.SetDeadline(d)
+	}
+
+	return nil
+}
+
+func (c *client) Close() error {
+	err := c.applyDeadline()
+	if err != nil {
+		return err
+	}
+
+	return c.transport.Close()
+}
+
+func (c *client) SendMessage(method string, datum interface{}) (string, error) {
 	request, err := c.callProtocol.PrepareRequest(method, datum)
 	if err != nil {
 		return "", err
@@ -141,26 +159,4 @@ func (c *client) sendMessage(method string, datum interface{}) (string, error) {
 	}
 
 	return status, nil
-}
-
-func (c *client) applyDeadline() error {
-	if c.sendTimeout > 0 {
-		d := time.Now().Add(c.sendTimeout)
-		return c.transport.SetDeadline(d)
-	}
-
-	return nil
-}
-
-func (c *client) SendMessage(method string, datum interface{}) (string, error) {
-	return c.sendMessage(method, datum)
-}
-
-func (c *client) Close() error {
-	err := c.applyDeadline()
-	if err != nil {
-		return err
-	}
-
-	return c.transport.Close()
 }
