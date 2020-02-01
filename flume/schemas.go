@@ -1,4 +1,67 @@
-package protocols
+package flume
+
+const errorsSchema = `
+{
+  "type": [
+    "string"
+  ]
+}
+`
+
+const eventSchema = `
+{
+  "type": "record",
+  "name": "AvroFlumeEvent",
+  "fields": [
+    {
+      "name": "headers",
+      "type": {
+        "type": "map",
+        "values": "string"
+      }
+    },
+    {
+      "name": "body",
+      "type": "bytes"
+    }
+  ]
+}
+`
+
+const eventsSchema = `
+{
+  "type": "array",
+  "items": {
+    "type": "record",
+    "name": "AvroFlumeEvent",
+    "fields": [
+      {
+        "name": "headers",
+        "type": {
+          "type": "map",
+          "values": "string"
+        }
+      },
+      {
+        "name": "body",
+        "type": "bytes"
+      }
+    ]
+  }
+}
+`
+
+const statusSchema = `
+{
+  "type": "enum",
+  "name": "Status",
+  "symbols": [
+    "OK",
+    "FAILED",
+    "UNKNOWN"
+  ]
+}
+`
 
 const messageProtocol = `
 {
@@ -56,94 +119,5 @@ const messageProtocol = `
       "response": "Status"
     }
   }
-}
-`
-
-const handshakeRequestSchema = `
-{
-  "type": "record",
-  "name": "HandshakeRequest",
-  "namespace": "org.apache.avro.ipc",
-  "fields": [
-    {
-      "name": "clientHash",
-      "type": {
-        "type": "fixed",
-        "name": "MD5",
-        "size": 16
-      }
-    },
-    {
-      "name": "clientProtocol",
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    {
-      "name": "serverHash",
-      "type": "MD5"
-    },
-    {
-      "name": "meta",
-      "type": [
-        "null",
-        {
-          "type": "map",
-          "values": "bytes"
-        }
-      ]
-    }
-  ]
-}
-`
-
-const handshakeResponseSchema = `
-{
-  "type": "record",
-  "name": "HandshakeResponse",
-  "namespace": "org.apache.avro.ipc",
-  "fields": [
-    {
-      "name": "match",
-      "type": {
-        "type": "enum",
-        "name": "HandshakeMatch",
-        "symbols": [
-          "BOTH",
-          "CLIENT",
-          "NONE"
-        ]
-      }
-    },
-    {
-      "name": "serverProtocol",
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    {
-      "name": "serverHash",
-      "type": [
-        "null",
-        {
-          "type": "fixed",
-          "name": "MD5",
-          "size": 16
-        }
-      ]
-    },
-    {
-      "name": "meta",
-      "type": [
-        "null",
-        {
-          "type": "map",
-          "values": "bytes"
-        }
-      ]
-    }
-  ]
 }
 `

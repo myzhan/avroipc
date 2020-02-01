@@ -29,7 +29,7 @@ type client struct {
 // endpoint immediately.
 //
 // This constructor supposed to be used in production environments.
-func NewClientWithConfig(addr string, config *Config) (Client, error) {
+func NewClientWithConfig(addr string, proto protocols.MessageProtocol, config *Config) (Client, error) {
 	c := &client{}
 	c.sendTimeout = config.SendTimeout
 
@@ -38,17 +38,16 @@ func NewClientWithConfig(addr string, config *Config) (Client, error) {
 		return nil, err
 	}
 
-	c.initProtocols()
+	c.initProtocols(proto)
 	return c, c.handshake()
 }
 
-func (c *client) initProtocols() {
+func (c *client) initProtocols(proto protocols.MessageProtocol) {
 	// All errors here are only related to compilations of Avro schemas
 	// and are not possible at runtime because they will be caught by unit tests.
-	proto, _ := protocols.NewAvroSource()
 	c.framingLayer = layers.NewFraming(c.transport)
 	c.callProtocol, _ = protocols.NewCall(proto)
-	c.handshakeProtocol, _ = protocols.NewHandshake()
+	c.handshakeProtocol, _ = protocols.NewHandshake(proto)
 }
 
 func (c *client) initTransports(addr string, config *Config) (err error) {

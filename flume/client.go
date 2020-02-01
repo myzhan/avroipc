@@ -29,7 +29,11 @@ func NewClient(addr string) (Client, error) {
 //
 // This constructor supposed to be used in production environments.
 func NewClientWithConfig(addr string, config *avroipc.Config) (Client, error) {
-	c, err := avroipc.NewClientWithConfig(addr, config)
+	// All errors here are only related to compilations of Avro schemas
+	// and are not possible at runtime because they will be caught by unit tests.
+	proto, _ := NewAvroSource()
+
+	c, err := avroipc.NewClientWithConfig(addr, proto, config)
 	if err != nil {
 		return nil, err
 	}

@@ -24,7 +24,7 @@ func Test_getMD5(t *testing.T) {
 
 // Test successful schema compilation
 func TestNewHandshake(t *testing.T) {
-	_, err := NewHandshake()
+	_, err := NewHandshake(nil)
 	require.NoError(t, err)
 }
 
@@ -43,7 +43,7 @@ func TestHandshakeProtocol_PrepareRequest(t *testing.T) {
 			0x0, 0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		actual, err := p.PrepareRequest()
@@ -65,7 +65,7 @@ func TestHandshakeProtocol_PrepareRequest(t *testing.T) {
 			0x0, 0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		h := p.(*handshakeProtocol)
@@ -85,7 +85,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x7,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -100,7 +100,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -121,7 +121,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -141,7 +141,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -161,7 +161,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		h := p.(*handshakeProtocol)
@@ -185,7 +185,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		needResend, err := p.ProcessResponse(response)
@@ -205,7 +205,7 @@ func TestHandshakeProtocol_ProcessResponse(t *testing.T) {
 			0x0,
 		}
 
-		p, err := NewHandshake()
+		p, err := NewHandshake(nil)
 		require.NoError(t, err)
 
 		h := p.(*handshakeProtocol)
