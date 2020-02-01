@@ -14,6 +14,7 @@ type Client interface {
 	Close() error
 	Append(event *Event) (string, error)
 	AppendBatch(events []*Event) (string, error)
+	SendMessage(method string, datum interface{}) (string, error)
 }
 
 type client struct {
@@ -176,6 +177,10 @@ func (c *client) AppendBatch(events []*Event) (string, error) {
 	}
 
 	return c.sendMessage("appendBatch", datum)
+}
+
+func (c *client) SendMessage(method string, datum interface{}) (string, error) {
+	return c.sendMessage(method, datum)
 }
 
 func (c *client) Close() error {
