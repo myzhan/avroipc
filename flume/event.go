@@ -1,4 +1,4 @@
-package avroipc
+package flume
 
 // Event acts as an avro event
 type Event struct {

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/myzhan/avroipc/mocks"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,6 +54,7 @@ func TestClient_handshake(t *testing.T) {
 		require.NoError(t, err)
 		h.AssertExpectations(t)
 		f.AssertExpectations(t)
+		x.AssertExpectations(t)
 	})
 
 	t.Run("preparing request failed", func(t *testing.T) {
@@ -70,103 +72,13 @@ func TestClient_handshake(t *testing.T) {
 	})
 }
 
-func TestClient_Append(t *testing.T) {
-	method := "append"
-
-	request := []byte{0x0A, 0x0B}
-	response := []byte{0x1A, 0x1B}
-
-	origEvent := &Event{Headers: map[string]string{}, Body: []byte("test body")}
-	prepEvent := origEvent.toMap()
-
-	t.Run("succeed", func(t *testing.T) {
-		c, x, f, p, _ := prepare()
-
-		p.On("PrepareRequest", method, prepEvent).Return(request, nil)
-		f.On("Write", request).Return(nil)
-		x.On("Flush").Return(nil).Once()
-		f.On("Read").Return(response, nil)
-		p.On("ParseResponse", method, response).Return("SOME", nil)
-
-		status, err := c.Append(origEvent)
-		require.NoError(t, err)
-		require.Equal(t, "SOME", status)
-		p.AssertExpectations(t)
-		f.AssertExpectations(t)
-	})
-
-	t.Run("incorrect status type", func(t *testing.T) {
-		c, x, f, p, _ := prepare()
-
-		p.On("PrepareRequest", method, prepEvent).Return(request, nil).Once()
-		f.On("Write", request).Return(nil).Once()
-		x.On("Flush").Return(nil).Once()
-		f.On("Read").Return(response, nil).Once()
-		p.On("ParseResponse", method, response).Return(0, nil).Once()
-
-		status, err := c.Append(origEvent)
-		require.EqualError(t, err, "cannot convert status to string: 0")
-		require.Equal(t, "", status)
-		p.AssertExpectations(t)
-		f.AssertExpectations(t)
-	})
-}
-
-func TestClient_AppendBatch(t *testing.T) {
-	method := "appendBatch"
-
-	request := []byte{0x0A, 0x0B}
-	response := []byte{0x1A, 0x1B}
-
-	origEvents := []*Event{
-		{Headers: map[string]string{}, Body: []byte("test body 1")},
-		{Headers: map[string]string{}, Body: []byte("test body 2")},
-	}
-	prepEvents := []map[string]interface{}{
-		origEvents[0].toMap(),
-		origEvents[1].toMap(),
-	}
-
-	t.Run("succeed", func(t *testing.T) {
-		c, x, f, p, _ := prepare()
-
-		p.On("PrepareRequest", method, prepEvents).Return(request, nil)
-		f.On("Write", request).Return(nil)
-		x.On("Flush").Return(nil).Once()
-		f.On("Read").Return(response, nil)
-		p.On("ParseResponse", method, response).Return("SOME", nil)
-
-		status, err := c.AppendBatch(origEvents)
-		require.NoError(t, err)
-		require.Equal(t, "SOME", status)
-		p.AssertExpectations(t)
-		f.AssertExpectations(t)
-	})
-
-	t.Run("incorrect status type", func(t *testing.T) {
-		c, x, f, p, _ := prepare()
-
-		p.On("PrepareRequest", method, prepEvents).Return(request, nil).Once()
-		f.On("Write", request).Return(nil).Once()
-		x.On("Flush").Return(nil).Once()
-		f.On("Read").Return(response, nil).Once()
-		p.On("ParseResponse", method, response).Return(0, nil).Once()
-
-		status, err := c.AppendBatch(origEvents)
-		require.EqualError(t, err, "cannot convert status to string: 0")
-		require.Equal(t, "", status)
-		p.AssertExpectations(t)
-		f.AssertExpectations(t)
-	})
-}
-
 func TestClient_Close(t *testing.T) {
 	testErr := errors.New("test error")
 
 	t.Run("succeed", func(t *testing.T) {
 		c, x, _, _, _ := prepare()
 
-		x.On("Close").Return(nil)
+		x.On("Close").Return(nil).Once()
 
 		err := c.Close()
 		require.NoError(t, err)
@@ -176,10 +88,52 @@ func TestClient_Close(t *testing.T) {
 	t.Run("framing layer error", func(t *testing.T) {
 		c, x, _, _, _ := prepare()
 
-		x.On("Close").Return(testErr)
+		x.On("Close").Return(testErr).Once()
 
 		err := c.Close()
 		require.EqualError(t, err, "test error")
+		x.AssertExpectations(t)
+	})
+}
+
+func TestClient_SendMessage(t *testing.T) {
+	datum := "test data"
+	method := "append"
+
+	request := []byte{0x0A, 0x0B}
+	response := []byte{0x1A, 0x1B}
+
+	t.Run("succeed", func(t *testing.T) {
+		c, x, f, p, _ := prepare()
+
+		p.On("PrepareRequest", method, datum).Return(request, nil).Once()
+		f.On("Write", request).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
+		f.On("Read").Return(response, nil).Once()
+		p.On("ParseResponse", method, response).Return("SOME", nil).Once()
+
+		status, err := c.SendMessage(method, datum)
+		require.NoError(t, err)
+		require.Equal(t, "SOME", status)
+		p.AssertExpectations(t)
+		f.AssertExpectations(t)
+		x.AssertExpectations(t)
+	})
+
+	t.Run("incorrect status type", func(t *testing.T) {
+		c, x, f, p, _ := prepare()
+
+		p.On("PrepareRequest", method, datum).Return(request, nil).Once()
+		f.On("Write", request).Return(nil).Once()
+		x.On("Flush").Return(nil).Once()
+		f.On("Read").Return(response, nil).Once()
+		p.On("ParseResponse", method, response).Return(0, nil).Once()
+
+		status, err := c.SendMessage(method, datum)
+		require.EqualError(t, err, "cannot convert status to string: 0")
+		require.Equal(t, "", status)
+		p.AssertExpectations(t)
+		f.AssertExpectations(t)
 		x.AssertExpectations(t)
 	})
 }

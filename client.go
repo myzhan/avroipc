@@ -12,8 +12,7 @@ import (
 // An avro client implementation
 type Client interface {
 	Close() error
-	Append(event *Event) (string, error)
-	AppendBatch(events []*Event) (string, error)
+	SendMessage(method string, datum interface{}) (string, error)
 }
 
 type client struct {
@@ -23,14 +22,6 @@ type client struct {
 	framingLayer      layers.FramingLayer
 	callProtocol      protocols.CallProtocol
 	handshakeProtocol protocols.HandshakeProtocol
-}
-
-// NewClient creates an avro client with default option values and
-// connects to the specified remote Flume endpoint immediately.
-//
-// Very useful for the testing purposes and to build simple examples.
-func NewClient(addr string) (Client, error) {
-	return NewClientWithConfig(addr, NewConfig())
 }
 
 // NewClient creates an avro client with considering values of options from
@@ -128,7 +119,25 @@ func (c *client) handshake() error {
 	return nil
 }
 
-func (c *client) sendMessage(method string, datum interface{}) (string, error) {
+func (c *client) applyDeadline() error {
+	if c.sendTimeout > 0 {
+		d := time.Now().Add(c.sendTimeout)
+		return c.transport.SetDeadline(d)
+	}
+
+	return nil
+}
+
+func (c *client) Close() error {
+	err := c.applyDeadline()
+	if err != nil {
+		return err
+	}
+
+	return c.transport.Close()
+}
+
+func (c *client) SendMessage(method string, datum interface{}) (string, error) {
 	request, err := c.callProtocol.PrepareRequest(method, datum)
 	if err != nil {
 		return "", err
@@ -150,39 +159,4 @@ func (c *client) sendMessage(method string, datum interface{}) (string, error) {
 	}
 
 	return status, nil
-}
-
-func (c *client) applyDeadline() error {
-	if c.sendTimeout > 0 {
-		d := time.Now().Add(c.sendTimeout)
-		return c.transport.SetDeadline(d)
-	}
-
-	return nil
-}
-
-// Append sends event to flume
-func (c *client) Append(event *Event) (string, error) {
-	datum := event.toMap()
-
-	return c.sendMessage("append", datum)
-}
-
-// Append sends events to flume
-func (c *client) AppendBatch(events []*Event) (string, error) {
-	datum := make([]map[string]interface{}, 0)
-	for _, event := range events {
-		datum = append(datum, event.toMap())
-	}
-
-	return c.sendMessage("appendBatch", datum)
-}
-
-func (c *client) Close() error {
-	err := c.applyDeadline()
-	if err != nil {
-		return err
-	}
-
-	return c.transport.Close()
 }

@@ -1,4 +1,4 @@
-package avroipc
+package flume
 
 import (
 	"log"
@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/myzhan/avroipc"
 )
 
 func TestSend(t *testing.T) {
@@ -17,7 +19,7 @@ func TestSend(t *testing.T) {
 	if addr == "" {
 		t.Skip("The FLUME_SERVER_ADDRESS environment variable is not set")
 	}
-	config := NewConfig()
+	config := avroipc.NewConfig()
 
 	level := os.Getenv("FLUME_COMPRESSION_LEVEL")
 	if level != "" {

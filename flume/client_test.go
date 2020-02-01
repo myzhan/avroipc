@@ -1,4 +1,4 @@
-package avroipc_test
+package flume_test
 
 import (
 	"bytes"
@@ -7,16 +7,43 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myzhan/avroipc/internal"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/myzhan/avroipc"
+	"github.com/myzhan/avroipc/flume"
+	"github.com/myzhan/avroipc/internal"
 )
 
 type pair struct {
 	req  []byte
 	resp []byte
+}
+
+func getHandler(pairs []pair) func(conn net.Conn) error {
+	// Pass copy of pairs to handler to avoid using the same variable in
+	// different goroutines.
+	return func(conn net.Conn) error {
+		req := internal.Buffer{}
+		for {
+			err := req.ReadFrom(conn)
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+
+			for _, p := range pairs {
+				if bytes.Equal(req.Bytes(), p.req) {
+					req.Reset()
+					_, err := conn.Write(p.resp)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
 }
 
 func TestClient(t *testing.T) {
@@ -137,38 +164,17 @@ func TestClient(t *testing.T) {
 	}
 	for n, d := range data {
 		t.Run(n, func(t *testing.T) {
-			addr, clean := internal.RunServer(t, func(conn net.Conn) error {
-				req := internal.Buffer{}
-				for {
-					err := req.ReadFrom(conn)
-					if err == io.EOF {
-						return nil
-					}
-					if err != nil {
-						return err
-					}
-
-					for _, p := range d.pairs {
-						if bytes.Equal(req.Bytes(), p.req) {
-							req.Reset()
-							_, err := conn.Write(p.resp)
-							if err != nil {
-								return err
-							}
-						}
-					}
-				}
-			})
+			addr, clean := internal.RunServer(t, getHandler(d.pairs))
 
 			config := avroipc.NewConfig()
 			config.WithTimeout(time.Second)
 			config.WithSendTimeout(3 * time.Second)
 			config.WithBufferSize(d.buffer)
 			config.WithCompressionLevel(d.level)
-			client, err := avroipc.NewClientWithConfig(addr, config)
+			client, err := flume.NewClientWithConfig(addr, config)
 			require.NoError(t, err)
 
-			event := &avroipc.Event{
+			event := &flume.Event{
 				Body: []byte("tttt"),
 			}
 			status, err := client.Append(event)
@@ -181,7 +187,7 @@ func TestClient(t *testing.T) {
 	}
 
 	t.Run("bad address", func(t *testing.T) {
-		_, err := avroipc.NewClient("1:2:3")
+		_, err := flume.NewClient("1:2:3")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "too many colons in address")
 	})
@@ -190,7 +196,7 @@ func TestClient(t *testing.T) {
 		addr, clean := internal.RunServer(t, func(conn net.Conn) error {
 			return nil
 		})
-		_, err := avroipc.NewClientWithConfig(addr, avroipc.NewConfig().WithCompressionLevel(10))
+		_, err := flume.NewClientWithConfig(addr, avroipc.NewConfig().WithCompressionLevel(10))
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "zlib: invalid compression level: 10")
 
