@@ -19,6 +19,33 @@ type pair struct {
 	resp []byte
 }
 
+func getHandler(pairs []pair) func(conn net.Conn) error {
+	// Pass copy of pairs to handler to avoid using the same variable in
+	// different goroutines.
+	return func(conn net.Conn) error {
+		req := internal.Buffer{}
+		for {
+			err := req.ReadFrom(conn)
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+
+			for _, p := range pairs {
+				if bytes.Equal(req.Bytes(), p.req) {
+					req.Reset()
+					_, err := conn.Write(p.resp)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+}
+
 func TestClient(t *testing.T) {
 	data := map[string]struct {
 		pairs []pair
@@ -137,28 +164,7 @@ func TestClient(t *testing.T) {
 	}
 	for n, d := range data {
 		t.Run(n, func(t *testing.T) {
-			addr, clean := internal.RunServer(t, func(conn net.Conn) error {
-				req := internal.Buffer{}
-				for {
-					err := req.ReadFrom(conn)
-					if err == io.EOF {
-						return nil
-					}
-					if err != nil {
-						return err
-					}
-
-					for _, p := range d.pairs {
-						if bytes.Equal(req.Bytes(), p.req) {
-							req.Reset()
-							_, err := conn.Write(p.resp)
-							if err != nil {
-								return err
-							}
-						}
-					}
-				}
-			})
+			addr, clean := internal.RunServer(t, getHandler(d.pairs))
 
 			config := avroipc.NewConfig()
 			config.WithTimeout(time.Second)
