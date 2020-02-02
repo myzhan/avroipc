@@ -40,11 +40,12 @@ type handshakeProtocol struct {
 }
 
 func NewHandshake(proto MessageProtocol) (HandshakeProtocol, error) {
+	m := proto.GetSchema()
 	p := &handshakeProtocol{
 		proto:          proto,
-		serverHash:     getMD5(messageProtocol),
-		clientHash:     getMD5(messageProtocol),
-		clientProtocol: messageProtocol,
+		serverHash:     getMD5(m),
+		clientHash:     getMD5(m),
+		clientProtocol: m,
 	}
 
 	p.logger = logrus.WithFields(logrus.Fields{

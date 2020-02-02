@@ -105,3 +105,7 @@ func (p *AvroSourceProtocol) ParseError(method string, responseBytes []byte) ([]
 
 	return responseBytes, fmt.Errorf(responseStr)
 }
+
+func (p *AvroSourceProtocol) GetSchema() string {
+	return messageProtocol
+}

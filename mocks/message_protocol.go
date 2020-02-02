@@ -20,3 +20,8 @@ func (p *MockProtocol) ParseError(method string, responseBytes []byte) ([]byte, 
 	args := p.Called(method, responseBytes)
 	return args.Get(0).([]byte), args.Error(1)
 }
+
+func (p *MockProtocol) GetSchema() string {
+	args := p.Called()
+	return args.String(0)
+}
