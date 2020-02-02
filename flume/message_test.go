@@ -1,11 +1,11 @@
-package protocols_test
+package flume_test
 
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/myzhan/avroipc/flume"
 
-	"github.com/myzhan/avroipc/protocols"
+	"github.com/stretchr/testify/require"
 )
 
 func makeDatum(body string) interface{} {
@@ -25,12 +25,12 @@ func makeArrayDatum(bodies ...string) interface{} {
 
 // Test successful schema compilation
 func TestNewAvroSource(t *testing.T) {
-	_, err := protocols.NewAvroSource()
+	_, err := flume.NewAvroSource()
 	require.NoError(t, err)
 }
 
 func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
-	p, err := protocols.NewAvroSource()
+	p, err := flume.NewAvroSource()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestAvroSourceProtocol_PrepareMessage(t *testing.T) {
 }
 
 func TestAvroSourceProtocol_ParseMessage(t *testing.T) {
-	p, err := protocols.NewAvroSource()
+	p, err := flume.NewAvroSource()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {
@@ -103,7 +103,7 @@ func TestAvroSourceProtocol_ParseMessage(t *testing.T) {
 }
 
 func TestAvroSourceProtocol_ParseError(t *testing.T) {
-	p, err := protocols.NewAvroSource()
+	p, err := flume.NewAvroSource()
 	require.NoError(t, err)
 
 	t.Run("bad method", func(t *testing.T) {

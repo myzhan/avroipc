@@ -27,6 +27,8 @@ type HandshakeProtocol interface {
 type handshakeProtocol struct {
 	logger *logrus.Entry
 
+	proto MessageProtocol
+
 	serverHash     []byte
 	clientHash     []byte
 	clientProtocol string
@@ -37,11 +39,13 @@ type handshakeProtocol struct {
 	handshakeResponseCodec *goavro.Codec
 }
 
-func NewHandshake() (HandshakeProtocol, error) {
+func NewHandshake(proto MessageProtocol) (HandshakeProtocol, error) {
+	m := proto.GetSchema()
 	p := &handshakeProtocol{
-		serverHash:     getMD5(messageProtocol),
-		clientHash:     getMD5(messageProtocol),
-		clientProtocol: messageProtocol,
+		proto:          proto,
+		serverHash:     getMD5(m),
+		clientHash:     getMD5(m),
+		clientProtocol: m,
 	}
 
 	p.logger = logrus.WithFields(logrus.Fields{
