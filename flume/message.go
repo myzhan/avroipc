@@ -5,7 +5,7 @@ import (
 
 	"github.com/myzhan/avroipc/protocols"
 
-	"github.com/linkedin/goavro"
+	"github.com/linkedin/goavro/v2"
 )
 
 type message struct {

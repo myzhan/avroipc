@@ -5,7 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 
-	"github.com/linkedin/goavro"
+	"github.com/linkedin/goavro/v2"
 	"github.com/sirupsen/logrus"
 )
 
