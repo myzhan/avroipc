@@ -1,6 +1,9 @@
 package avroipc
 
-import "time"
+import (
+	"crypto/tls"
+	"time"
+)
 
 // Config provides a configuration for the client. Use the NewConfig method
 // to create an instance of the Config and set all necessary parameters of
@@ -36,6 +39,11 @@ type Config struct {
 	//
 	// Defaults to zero which means that the compression will be disabled.
 	CompressionLevel int
+
+	// Use TLS Config
+	//
+	// Defaults to false
+	TLSConfig *tls.Config
 }
 
 // NewConfig returns a pointer to a new Config instance that is used to
@@ -44,11 +52,13 @@ type Config struct {
 // options in a single command. A NewConfig call may be also chained with
 // other methods to inline config creations.
 //
-//     config := NewConfig()
-//     config.WithTimeout(3*time.Second)
-//     client, err := NewClientWithConfig(config)
+//	config := NewConfig()
+//	config.WithTimeout(3*time.Second)
+//	client, err := NewClientWithConfig(config)
+//
 // or just
-//     client, err := NewClientWithConfig(NewConfig().WithTimeout(3*time.Second))
+//
+//	client, err := NewClientWithConfig(NewConfig().WithTimeout(3*time.Second))
 func NewConfig() *Config {
 	return &Config{}
 }
@@ -74,5 +84,10 @@ func (c *Config) WithBufferSize(s int) *Config {
 // Sets the compression level of the zlib transport.
 func (c *Config) WithCompressionLevel(l int) *Config {
 	c.CompressionLevel = l
+	return c
+}
+
+func (c *Config) WithTLSConfig(cfg *tls.Config) *Config {
+	c.TLSConfig = cfg
 	return c
 }
