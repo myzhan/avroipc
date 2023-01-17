@@ -57,10 +57,13 @@ func (c *client) initTransports(addr string, config *Config) (err error) {
 			return err
 		}
 	} else {
-		c.transport, err = transports.NewSSLSocket(addr, config.TLSConfig)
+
+		c.transport, err = transports.NewSSLSocket(addr, config.TLSConfig, config.CompressionLevel)
 		if err != nil {
 			return err
 		}
+
+		return
 	}
 
 	if config.BufferSize > 0 {
