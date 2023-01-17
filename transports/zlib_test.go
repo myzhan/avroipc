@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net"
 	"testing"
 	"time"
 
@@ -12,8 +13,11 @@ import (
 	"github.com/myzhan/avroipc/transports"
 )
 
-var data = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
-var flushed = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x00, 0x00, 0x00, 0xff, 0xff, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
+var (
+	data           = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
+	dataShortWrite = []byte{0x78, 0x1, 0x0, 0x4, 0x0, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x0, 0x0, 0x0, 0xff, 0xff}
+	flushed        = []byte{0x78, 0x01, 0x00, 0x04, 0x00, 0xfb, 0xff, 0x74, 0x65, 0x73, 0x74, 0x00, 0x00, 0x00, 0xff, 0xff, 0x01, 0x00, 0x00, 0xff, 0xff, 0x04, 0x5d, 0x01, 0xc1}
+)
 
 type mockTransport struct {
 	bytes.Buffer
@@ -29,6 +33,22 @@ func (m *mockTransport) Flush() error {
 
 func (m *mockTransport) SetDeadline(time.Time) error {
 	return errors.New("test error")
+}
+
+func (m *mockTransport) SetReadDeadline(t time.Time) error {
+	return errors.New("test error")
+}
+
+func (m *mockTransport) SetWriteDeadline(t time.Time) error {
+	return errors.New("test error")
+}
+
+func (t *mockTransport) LocalAddr() net.Addr {
+	return nil
+}
+
+func (t *mockTransport) RemoteAddr() net.Addr {
+	return nil
 }
 
 func prepareZlibTransport(t *testing.T, data []byte) (transports.Transport, *mockTransport) {
@@ -61,7 +81,7 @@ func TestZlibTransport_Write(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 4, n)
 
-		require.Equal(t, data[:2], m.Bytes())
+		require.Equal(t, dataShortWrite, m.Bytes())
 	})
 	t.Run("with close", func(t *testing.T) {
 		trans, m := prepareZlibTransport(t, []byte{})
@@ -74,7 +94,7 @@ func TestZlibTransport_Write(t *testing.T) {
 		err = trans.Close()
 		require.NoError(t, err)
 
-		require.Equal(t, data, m.Bytes())
+		require.Equal(t, flushed, m.Bytes())
 	})
 	t.Run("with flush", func(t *testing.T) {
 		trans, m := prepareZlibTransport(t, []byte{})

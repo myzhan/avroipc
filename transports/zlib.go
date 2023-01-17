@@ -3,13 +3,12 @@ package transports
 import (
 	"compress/zlib"
 	"io"
-	"time"
 )
 
 type zlibTransport struct {
-	r     io.ReadCloser
-	w     *zlib.Writer
-	trans Transport
+	r io.ReadCloser
+	w *zlib.Writer
+	Transport
 }
 
 func NewZlib(trans Transport, level int) (Transport, error) {
@@ -19,8 +18,8 @@ func NewZlib(trans Transport, level int) (Transport, error) {
 	}
 
 	return &zlibTransport{
-		w:     w,
-		trans: trans,
+		w:         w,
+		Transport: trans,
 	}, nil
 }
 
@@ -37,14 +36,14 @@ func (t *zlibTransport) Close() error {
 		return err
 	}
 
-	return t.trans.Close()
+	return t.Transport.Close()
 }
 
 func (t *zlibTransport) Read(p []byte) (int, error) {
 	// Use lazy initialization of a reader because it immediately starts reading a header
 	// so may hang if there is no data in the underlying transport
 	if t.r == nil {
-		r, err := zlib.NewReader(t.trans)
+		r, err := zlib.NewReader(t.Transport)
 		if err != nil {
 			return 0, err
 		}
@@ -55,18 +54,21 @@ func (t *zlibTransport) Read(p []byte) (int, error) {
 }
 
 func (t *zlibTransport) Write(p []byte) (int, error) {
-	return t.w.Write(p)
+	n, err := t.w.Write(p)
+	if err != nil {
+		return 0, err
+	}
+
+	return n, t.w.Flush()
 }
 
 func (t *zlibTransport) Flush() error {
-	err := t.w.Flush()
-	if err != nil {
-		return err
-	}
+	/*
+		err := t.w.Flush()
+		if err != nil {
+			return err
+		}
+	*/
 
-	return t.trans.Flush()
-}
-
-func (t *zlibTransport) SetDeadline(d time.Time) error {
-	return t.trans.SetDeadline(d)
+	return t.Transport.Flush()
 }

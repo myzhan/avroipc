@@ -1,8 +1,10 @@
 package mocks
 
 import (
-	"github.com/stretchr/testify/mock"
+	"net"
 	"time"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockTransport struct {
@@ -37,4 +39,21 @@ func (t *MockTransport) Flush() error {
 func (t *MockTransport) SetDeadline(d time.Time) error {
 	args := t.Called(d)
 	return args.Error(0)
+}
+func (t *MockTransport) SetReadDeadline(d time.Time) error {
+	args := t.Called(d)
+	return args.Error(0)
+}
+
+func (t *MockTransport) SetWriteDeadline(d time.Time) error {
+	args := t.Called(d)
+	return args.Error(0)
+}
+
+func (t *MockTransport) LocalAddr() net.Addr {
+	return nil
+}
+
+func (t *MockTransport) RemoteAddr() net.Addr {
+	return nil
 }
