@@ -88,6 +88,7 @@ func (c *zlibConn) SetWriteDeadline(t time.Time) error {
 var _ Transport = new(sslsocket)
 
 func NewSSLSocket(hostPort string, tlsConfig *tls.Config, compressionLevel int) (Transport, error) {
+
 	addr, err := net.ResolveTCPAddr("tcp", hostPort)
 	if err != nil {
 		return nil, err

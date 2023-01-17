@@ -64,6 +64,7 @@ func (c *client) initTransports(addr string, config *Config) (err error) {
 		}
 
 		return
+
 	}
 
 	if config.BufferSize > 0 {
