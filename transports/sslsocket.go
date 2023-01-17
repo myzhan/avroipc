@@ -62,6 +62,17 @@ func (c *zlibConn) Write(b []byte) (n int, err error) {
 }
 
 func (c *zlibConn) Close() error {
+	if c.zr != nil {
+		if err := c.zr.Close(); err != nil {
+			return err
+		}
+	}
+	if c.zw != nil {
+		if err := c.zw.Close(); err != nil {
+			return err
+		}
+	}
+
 	return c.rawConn.Close()
 }
 
