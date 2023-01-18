@@ -19,12 +19,14 @@ type pair struct {
 	resp []byte
 }
 
-func getHandler(pairs []pair) func(conn net.Conn) error {
+func getHandler(t *testing.T, pairs []pair) func(conn net.Conn) error {
+	t.Helper()
 	// Pass copy of pairs to handler to avoid using the same variable in
 	// different goroutines.
 	return func(conn net.Conn) error {
 		req := internal.Buffer{}
 		for {
+		outer:
 			err := req.ReadFrom(conn)
 			if err == io.EOF {
 				return nil
@@ -33,14 +35,20 @@ func getHandler(pairs []pair) func(conn net.Conn) error {
 				return err
 			}
 
+			foundPair := false
 			for _, p := range pairs {
 				if bytes.Equal(req.Bytes(), p.req) {
 					req.Reset()
+					foundPair = true
 					_, err := conn.Write(p.resp)
 					if err != nil {
 						return err
 					}
+					goto outer
 				}
+			}
+			if !foundPair {
+				t.Logf("failed to find a matching pair for: %#02v", req.Bytes())
 			}
 		}
 	}
@@ -164,7 +172,7 @@ func TestClient(t *testing.T) {
 	}
 	for n, d := range data {
 		t.Run(n, func(t *testing.T) {
-			addr, clean := internal.RunServer(t, getHandler(d.pairs))
+			addr, clean := internal.RunServer(t, getHandler(t, d.pairs))
 
 			config := avroipc.NewConfig()
 			config.WithTimeout(time.Second)

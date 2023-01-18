@@ -2,6 +2,7 @@ package transports
 
 import (
 	"bufio"
+	"net"
 	"time"
 )
 
@@ -45,4 +46,20 @@ func (p *bufferedTransport) Flush() error {
 
 func (p *bufferedTransport) SetDeadline(t time.Time) error {
 	return p.trans.SetDeadline(t)
+}
+
+func (p *bufferedTransport) LocalAddr() net.Addr {
+	return p.trans.LocalAddr()
+}
+
+func (p *bufferedTransport) RemoteAddr() net.Addr {
+	return p.trans.RemoteAddr()
+}
+
+func (p *bufferedTransport) SetReadDeadline(t time.Time) error {
+	return p.trans.SetReadDeadline(t)
+}
+
+func (p *bufferedTransport) SetWriteDeadline(t time.Time) error {
+	return p.trans.SetWriteDeadline(t)
 }

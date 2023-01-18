@@ -51,13 +51,21 @@ func (c *client) initProtocols(proto protocols.MessageProtocol) {
 }
 
 func (c *client) initTransports(addr string, config *Config) (err error) {
-	if config.TLSConfig == nil {
-		c.transport, err = transports.NewSocket(addr, config.Timeout)
+
+	c.transport, err = transports.NewSocket(addr, config.Timeout)
+	if err != nil {
+		return err
+	}
+
+	if config.CompressionLevel > 0 {
+		c.transport, err = transports.NewZlib(c.transport, config.CompressionLevel)
 		if err != nil {
 			return err
 		}
-	} else {
-		c.transport, err = transports.NewSSLSocket(addr, config.TLSConfig)
+	}
+
+	if config.TLSConfig != nil {
+		c.transport, err = transports.NewTLS(c.transport, config.TLSConfig)
 		if err != nil {
 			return err
 		}
@@ -65,12 +73,6 @@ func (c *client) initTransports(addr string, config *Config) (err error) {
 
 	if config.BufferSize > 0 {
 		c.transport = transports.NewBuffered(c.transport, config.BufferSize)
-	}
-	if config.CompressionLevel > 0 {
-		c.transport, err = transports.NewZlib(c.transport, config.CompressionLevel)
-		if err != nil {
-			return err
-		}
 	}
 
 	return

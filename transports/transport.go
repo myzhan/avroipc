@@ -1,13 +1,11 @@
 package transports
 
 import (
-	"io"
-	"time"
+	"net"
 )
 
 type Transport interface {
-	io.ReadWriteCloser
+	net.Conn
 
 	Flush() error
-	SetDeadline(t time.Time) error
 }
